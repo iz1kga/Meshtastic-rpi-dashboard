@@ -15,8 +15,8 @@ class ChatWebSocketHandler(WebSocket):
         #cherrypy.engine.publish('websocket-broadcast', m)
         cherrypy.engine.publish('websocket-broadcast', m)
 
-    def closed(self, code, reason="A client left the room without a proper explanation."):
-        cherrypy.engine.publish('websocket-broadcast', "{'closed':true}")
+#    def closed(self, code, reason="A client left the room without a proper explanation."):
+#        cherrypy.engine.publish('websocket-broadcast', "{'closed':true}")
 
 class Root(object):
     def __init__(self, host, port, ssl=False):
@@ -56,8 +56,14 @@ class Root(object):
           ws.onmessage = function (evt) {
              $('#chat').val($('#chat').val() + evt.data + '\\n');
              jsonData = JSON.parse(evt.data)
-             for (const [key, value] of Object.entries(jsonData)) {
-                 console.log(`${key}: ${value}`);
+             $('#nodes').val("");
+             for (let [key, value] of Object.entries(jsonData.nodes)) {
+                 console.log(key, value);
+                 $('#nodes').val($('#nodes').val() + key +'\\n');
+             }
+             if(jsonData.packet.decoded.data.portnum == "TEXT_MESSAGE_APP")
+             {
+                 $('#messages').val($('#messages').val() + jsonData.packet.fromId +": "+ jsonData.packet.decoded.data.text  + '\\n');
              }
           };
           ws.onopen = function() {
@@ -82,6 +88,9 @@ class Root(object):
       <label for='message'>%(username)s: </label><input type='text' id='message' />
       <input id='send' type='submit' value='Send' />
       </form>
+      <textarea id='nodes' cols='50' rows='10'></textarea>
+      <textarea id='messages' cols='50' rows='10'></textarea>
+
     </body>
     </html>
     """ % {'username': "User%d" % random.randint(0, 100), 'host': self.host, 'port': self.port, 'scheme': self.scheme}

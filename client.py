@@ -14,14 +14,20 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 def onReceive(packet, interface):
-    print("serialReceive")
-    ws.send(json.dumps(interface.nodes))
+    try:
+        packet['decoded']['data']['payload'] = str(packet['decoded']['data']['payload'])
+        jsonTXT = '{"nodes":'+json.dumps(interface.nodes)+', "packet":'+json.dumps(packet)+'}'
+        print(jsonTXT)
+        ws.send(jsonTXT)
+    except Exception as e:
+        print(e)
+    #ws.send(json.dumps(packet))
 
 def onConnection(interface, topic=pub.AUTO_TOPIC):
     print("serialconnect")
     #cherrypy.engine.publish('websocket-broadcast', "{'test':'connected'}")
     #interface.sendText("test hello!")
-    ws.send("connected")
+    ws.send("")
 
 
 signal.signal(signal.SIGINT, signal_handler)
