@@ -10,7 +10,7 @@ from ws4py.websocket import WebSocket
 from ws4py.messaging import TextMessage
 
 
-class ChatWebSocketHandler(WebSocket):
+class consoleWebSocketHandler(WebSocket):
     def received_message(self, m):
         #cherrypy.engine.publish('websocket-broadcast', m)
         cherrypy.engine.publish('websocket-broadcast', m)
@@ -28,11 +28,77 @@ class Root(object):
     def index(self):
         return """<html>
         <head>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/css/ol.css" type="text/css">
+
         <script type='application/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'></script>
+        <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/build/ol.js"></script>
         <script type='application/javascript'>
+
+
         var jsonData;
         var nodeList = [];
+
+
+        var lat=45.07;
+        var lon=7.51;
+        var z=10;
+
+var icon="http://www.openstreetmap.org/openlayers/img/marker.png";
+var iconFeatures=[];
+var vectorSource = new ol.source.Vector({
+    features: iconFeatures //add an array of features
+});
+
+var iconStyle = new ol.style.Style({
+    image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+        anchor: [0.5, 46],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+        opacity: 0.95,
+        src:icon
+    }))
+});
+
+var vectorLayer = new ol.layer.Vector({
+    source: vectorSource,
+    style: iconStyle
+});
+
+
+function addMarker(lon,lat,icon) {
+var iconGeometry=new ol.geom.Point(ol.proj.transform([lon,lat], 'EPSG:4326','EPSG:3857'));
+var iconFeature = new ol.Feature({
+    geometry:iconGeometry
+});
+
+iconFeatures.push(iconFeature);
+}
+
+        function mapInit() {
+            var map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                source: new ol.source.OSM()
+                })
+            ],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([lon, lat]),
+                zoom: z
+                })
+            });
+            map.addLayer(vectorLayer);
+        }
+
+        function writeConsole(txt){
+            $('#console').val($('#console').val() + txt + '\\n');
+            $('#console').scrollTop($('#console')[0].scrollHeight);
+        }
+
         $(document).ready(function() {
+          mapInit();
+
           websocket = '%(scheme)s://%(host)s:%(port)s/ws';
           if (window.WebSocket) {
             ws = new WebSocket(websocket);
@@ -46,7 +112,7 @@ class Root(object):
           }
 
           window.onbeforeunload = function(e) {
-            $('#chat').val($('#chat').val() + 'Bye bye...\\n');
+            writeConsole("Bye bye");
             ws.close(1000, '%(username)s left the room');
 
             if(!e) e = window.event;
@@ -54,7 +120,7 @@ class Root(object):
             e.preventDefault();
           };
           ws.onmessage = function (evt) {
-             $('#chat').val($('#chat').val() + evt.data + '\\n');
+             writeConsole(evt.data);
              jsonData = JSON.parse(evt.data)
 
 
@@ -87,6 +153,8 @@ class Root(object):
 
              //Nodes Table
              $('#nodes').val("");
+             iconFeatures = []
+             vectorSource.clear()
              $("#nodesTable tbody").empty();
              nodeList.forEach(element => {
                  var elePos = "";
@@ -98,9 +166,15 @@ class Root(object):
                      eleLh = "---";
 
                  if(isNaN(element.pos.lat))
+                 {
                      elePos = "---";
+                 }
                  else
+                 {
                      elePos = element.pos.lat+"°, "+element.pos.lon+"°, "+element.pos.alt+" m" ;
+                     var createIcon=addMarker(element.pos.lon,element.pos.lat,icon);
+                     //markerObj[element.id] = 
+                 }
 
                  if(isNaN(element.batt))
                      eleBatt = "---";
@@ -115,18 +189,17 @@ class Root(object):
                                                "</td><td>"+eleLh+
                                                "</td></tr>")});
 
-             //"</td><td>"+parseFloat(value.position.longitude).toFixed(4)+", "+parseFloat(value.position.longitude).toFixed(4)+", "+value.position.altitude+
-
+             vectorSource.addFeatures(iconFeatures);
              if(jsonData.packet.decoded.data.portnum == "TEXT_MESSAGE_APP")
              {
                  $('#messages').val($('#messages').val() + jsonData.packet.fromId +": "+ jsonData.packet.decoded.data.text  + '\\n');
              }
           };
-          ws.onopen = function() {
-             ws.send('{"asd":"lol"}');
-          };
+          //ws.onopen = function() {
+          //   ws.send('{"asd":"lol"}');
+          //};
           ws.onclose = function(evt) {
-             $('#chat').val($('#chat').val() + 'Connection closed by server: ' + evt.code + ' \"' + evt.reason + '\"\\n');
+             writeConsole('Connection closed by server: ' + evt.code + ' ' + evt.reason);
           };
 
           $('#send').click(function() {
@@ -138,14 +211,6 @@ class Root(object):
       </script>
     </head>
     <body>
-    <form action='#' id='chatform' method='get'>
-      <textarea id='chat' cols='35' rows='10'></textarea>
-      <br />
-      <label for='message'>%(username)s: </label><input type='text' id='message' />
-      <input id='send' type='submit' value='Send' />
-      </form>
-      <textarea id='nodes' cols='50' rows='10'></textarea>
-      <textarea id='messages' cols='50' rows='10'></textarea>
       <table id="nodesTable" class="table table-bordered table-condensed table-striped">
           <thead>
               <tr>
@@ -160,6 +225,9 @@ class Root(object):
           <tbody>
           </tbody>
       </table>
+      <div id="map" style="width:100%%; height:400px"></div>
+      <textarea id='console' style='width: 100%%; heigth:350px'></textarea>
+
     </body>
     </html>
     """ % {'username': "User%d" % random.randint(0, 100), 'host': self.host, 'port': self.port, 'scheme': self.scheme}
@@ -197,7 +265,7 @@ if __name__ == '__main__':
     cherrypy.quickstart(Root(args.host, args.port, args.ssl), '', config={
         '/ws': {
             'tools.websocket.on': True,
-            'tools.websocket.handler_cls': ChatWebSocketHandler
+            'tools.websocket.handler_cls': consoleWebSocketHandler
             },
         '/js': {
               'tools.staticdir.on': True,
