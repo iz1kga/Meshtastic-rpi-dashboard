@@ -17,6 +17,7 @@ class MyClientProtocol(WebSocketClientProtocol):
         pub.subscribe(self.onReceive, "meshtastic.receive")
         pub.subscribe(self.onConnection, "meshtastci.connection.established")
         self.interface = meshtastic.SerialInterface()
+        self.jsonTXT = ""
 
     def __del__(self):
         self.interface.close()
@@ -26,9 +27,9 @@ class MyClientProtocol(WebSocketClientProtocol):
         print("Serial data received")
         try:
             packet['decoded']['data']['payload'] = str(packet['decoded']['data']['payload'])
-            jsonTXT = '{"nodes":'+json.dumps(interface.nodes)+', "packet":'+json.dumps(packet)+'}'
-            print(jsonTXT)
-            self.sendMessage(jsonTXT.encode("utf-8"))
+            self.jsonTXT = '{"nodes":'+json.dumps(interface.nodes)+', "packet":'+json.dumps(packet)+'}'
+            print(self.jsonTXT)
+            self.sendMessage(self.jsonTXT.encode("utf-8"))
         except Exception as e:
             print(e)
 
@@ -53,6 +54,12 @@ class MyClientProtocol(WebSocketClientProtocol):
             print("Binary message received: {0} bytes".format(len(payload)))
         else:
             print("Text message received: {0}".format(payload.decode('utf8')))
+            try:
+                cmd = json.loads(payload.decode('utf-8'))
+                if(cmd.get("cmd")=="update"):
+                    self.sendMessage(self.jsonTXT.encode("utf-8"))
+            except Exception as e:
+                print(e)
 
     def onClose(self, wasClean, code, reason):
         print("WebSocket connection closed: {0}".format(reason))

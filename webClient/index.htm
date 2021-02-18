@@ -10,7 +10,7 @@
     <script type='application/javascript' src="./ol.js"></script>
     <script type='application/javascript'>
         var websocket = 'ws://127.0.0.1:9000/ws';
-        var isopen= false;
+        var isopen = false;
 
         var jsonData;
         var nodeList = [];
@@ -25,36 +25,35 @@
             features: iconFeatures //add an array of features
         });
 
-        var iconStyle = new ol.style.Style({
-            image: new ol.style.Icon(/** @type {olx.style.IconOptions} */({
-                anchor: [0.5, 46],
-                anchorXUnits: 'fraction',
-                anchorYUnits: 'pixels',
-                opacity: 0.95,
-                src: icon
-            })),
-            text: new ol.style.Text({
-                text: 'the label',
-                fill: new ol.style.Fill({ color: 'black' }),
-                stroke: new ol.style.Stroke({ color: 'yellow', width: 1 }),
-                offsetX: -20,
-                offsetY: 20
-            })
-        });
-
         var vectorLayer = new ol.layer.Vector({
             source: vectorSource,
-            style: iconStyle
         });
 
 
         function addMarker(lon, lat, icon, txt) {
+            var iconStyle = new ol.style.Style({
+                image: new ol.style.Icon(/** @type {olx.style.IconOptions} */({
+                    anchor: [0.5, 46],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'pixels',
+                    opacity: 0.95,
+                    src: icon
+                })),
+                text: new ol.style.Text({
+                    text: "the label",
+                    fill: new ol.style.Fill({ color: 'black' }),
+                    stroke: new ol.style.Stroke({ color: 'white', width: 1 }),
+                    font: 'bold 11px Arial, Verdana, Helvetica, sans-serif',
+                    offsetX: 0,
+                    offsetY: -60
+                })
+            });
             var iconGeometry = new ol.geom.Point(ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857'));
             var iconFeature = new ol.Feature({
                 geometry: iconGeometry,
-                name: txt
             });
-
+            iconStyle.getText().setText(txt);
+            iconFeature.setStyle(iconStyle);
             iconFeatures.push(iconFeature);
         }
 
@@ -219,14 +218,14 @@
         <tbody>
         </tbody>
     </table>
-    <div id="map" style="width:100%%; height:400px"></div><br/>
-    
-    
+    <div id="map" style="width:100%%; height:400px"></div><br />
+
+
     ip:<input type="text" id="IPaddr" value="iz1kga.ddns.net">
     port:<input type="text" id="srvPort" value="9000">
     <button onclick='connectWS();'>Connect</button>
     <div id="connStatus" class="circle red"></div>
-    <textarea id='console' style='width: 100%; height:150px'></textarea><br/>
+    <textarea id='console' style='width: 100%; height:150px'></textarea><br />
 
 </body>
 

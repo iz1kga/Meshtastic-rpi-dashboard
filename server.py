@@ -45,6 +45,7 @@ class BroadcastServerFactory(WebSocketServerFactory):
     def register(self, client):
         if client not in self.clients:
             print("registered client {}".format(client.peer))
+            self.broadcast('{"cmd":"update"}')
             self.clients.append(client)
 
     def unregister(self, client):
