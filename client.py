@@ -1,4 +1,6 @@
-from ws4py.client import WebSocketBaseClient
+import asyncio
+
+from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientFactory
 
 import json
 
@@ -9,35 +11,58 @@ from pubsub import pub
 import signal
 import sys
 
-def signal_handler(signal, frame):
-    interface.close()
-    sys.exit(0)
 
-def onReceive(packet, interface):
-    try:
-        packet['decoded']['data']['payload'] = str(packet['decoded']['data']['payload'])
-        jsonTXT = '{"nodes":'+json.dumps(interface.nodes)+', "packet":'+json.dumps(packet)+'}'
-        print(jsonTXT)
-        ws.send(jsonTXT)
-    except Exception as e:
-        print(e)
-    #ws.send(json.dumps(packet))
+class MyClientProtocol(WebSocketClientProtocol):
+    def __init__(self):
+        pub.subscribe(self.onReceive, "meshtastic.receive")
+        pub.subscribe(self.onConnection, "meshtastci.connection.established")
+        self.interface = meshtastic.SerialInterface()
 
-def onConnection(interface, topic=pub.AUTO_TOPIC):
-    print("serialconnect")
-    #cherrypy.engine.publish('websocket-broadcast', "{'test':'connected'}")
-    #interface.sendText("test hello!")
-    ws.send("")
+    def __del__(self):
+        self.interface.close()
+        print("closing serial")
+
+    def onReceive(self, packet, interface):
+        print("Serial data received")
+        try:
+            packet['decoded']['data']['payload'] = str(packet['decoded']['data']['payload'])
+            jsonTXT = '{"nodes":'+json.dumps(interface.nodes)+', "packet":'+json.dumps(packet)+'}'
+            print(jsonTXT)
+            self.sendMessage(jsonTXT.encode("utf-8"))
+        except Exception as e:
+            print(e)
+
+    def onConnection(self, interface, topic=pub.AUTO_TOPIC):
+        print("serialconnect")
+        #cherrypy.engine.publish('websocket-broadcast', "{'test':'connected'}")
+        #interface.sendText("test hello!")
+
+    def onConnect(self, response):
+        print("Server connected: {0}".format(response.peer))
+
+    def onConnecting(self, transport_details):
+        print("Connecting; transport details: {}".format(transport_details))
+        return None  # ask for defaults
+
+    def onOpen(self):
+        print("WebSocket connection open.")
 
 
-signal.signal(signal.SIGINT, signal_handler)
+    def onMessage(self, payload, isBinary):
+        if isBinary:
+            print("Binary message received: {0} bytes".format(len(payload)))
+        else:
+            print("Text message received: {0}".format(payload.decode('utf8')))
 
+    def onClose(self, wasClean, code, reason):
+        print("WebSocket connection closed: {0}".format(reason))
 
-ws = WebSocketBaseClient('ws://localhost:9000/ws')
-ws.connect()
-
-pub.subscribe(onReceive, "meshtastic.receive")
-pub.subscribe(onConnection, "meshtastci.connection.established")
-
-
-interface = meshtastic.SerialInterface()
+if __name__ == '__main__':
+    factory = WebSocketClientFactory("ws://127.0.0.1:9000")
+    factory.protocol = MyClientProtocol
+    print("startloop")
+    loop = asyncio.get_event_loop()
+    coro = loop.create_connection(factory, '127.0.0.1', 9000)
+    loop.run_until_complete(coro)
+    loop.run_forever()
+    loop.close()
