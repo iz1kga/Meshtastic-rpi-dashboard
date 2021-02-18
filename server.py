@@ -81,7 +81,7 @@ if __name__ == '__main__':
     ServerFactory = BroadcastServerFactory
     # ServerFactory = BroadcastPreparedServerFactory
 
-    factory = ServerFactory("ws://127.0.0.1:9000")
+    factory = ServerFactory("ws://0.0.0.0:9000")
     factory.protocol = BroadcastServerProtocol
     listenWS(factory)
 
