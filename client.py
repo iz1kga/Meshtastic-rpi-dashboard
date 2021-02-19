@@ -27,7 +27,7 @@ class MyClientProtocol(WebSocketClientProtocol):
         print("Serial data received")
         try:
             packet['decoded']['data']['payload'] = str(packet['decoded']['data']['payload'])
-            self.jsonTXT = '{"nodes":'+json.dumps(interface.nodes)+', "packet":'+json.dumps(packet)+'}'
+            self.jsonTXT = '{"nodes":'+json.dumps(interface.nodes)+', "packet":'+json.dumps(packet)+', "myNode":'+json.dumps(interface.getMyNodeInfo())+'}'
             print(self.jsonTXT)
             self.sendMessage(self.jsonTXT.encode("utf-8"))
         except Exception as e:

@@ -2,12 +2,16 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="./ol.css" type="text/css">
-    <link rel="stylesheet" href="./style.css" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="ol.css" type="text/css">
+
+    <link rel="stylesheet" href="style.css" type="text/css">
 
     <script type='application/javascript'
         src='https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'></script>
-    <script type='application/javascript' src="./ol.js"></script>
+    <script type='application/javascript' src="ol.js"></script>
     <script type='application/javascript'>
         var websocket = 'ws://127.0.0.1:9000/ws';
         var isopen = false;
@@ -28,7 +32,6 @@
         var vectorLayer = new ol.layer.Vector({
             source: vectorSource,
         });
-
 
         function addMarker(lon, lat, icon, txt) {
             var iconStyle = new ol.style.Style({
@@ -74,9 +77,25 @@
         }
 
         function writeConsole(txt) {
-            $('#console').val($('#console').val() + txt + '\\n');
+            $('#console').val($('#console').val() + txt + '\n');
             $('#console').scrollTop($('#console')[0].scrollHeight);
         }
+
+        function toAll() {
+            $('#toMsg').val("^all");
+        }
+        function toTarget(id) {
+            $('#toMsg').val(id);
+        }
+
+        function searchList(nameKey, myArray) {
+            for (var i = 0; i < myArray.length; i++) {
+                if (myArray[i].name === nameKey) {
+                    return myArray[i];
+                }
+            }
+        }
+
 
         function connectWS() {
             websocket = 'ws://' + $('#IPaddr').val() + ':' + $('#srvPort').val() + '/ws';
@@ -92,34 +111,48 @@
             }
             ws.binaryType = "arraybuffer";
 
-
             ws.onopen = function () {
                 console.log("Connected!");
                 isopen = true;
-                $('#connStatus').removeClass('red');
-                $('#connStatus').addClass('blue');
+                $('#statusIcon').removeClass('red');
+                $('#statusIcon').addClass('blue');
             }
 
             ws.onmessage = function (evt) {
                 writeConsole(evt.data);
                 jsonData = JSON.parse(evt.data)
 
-
                 nodeList = [];
                 for (let [key, value] of Object.entries(jsonData.nodes)) {
+                    if (jsonData.myNode.user.id == value.user.id)
+                        continue;
+                    if (value.position) {
+                        var lat = value.position.latitude;
+                        var lon = value.position.longitude;
+                        var alt = value.position.altitude;
+                        var batt = value.position.batteryLevel;
+                        var time = value.position.time;
+                    }
+                    else {
+                        var lat = NaN;
+                        var lon = NaN;
+                        var alt = NaN;
+                        var batt = NaN;
+                        var time = NaN;
+                    }
                     nodeList.push({
                         "id": key,
                         "user": value.user.longName,
                         "pos": {
-                            "lat": parseFloat(value.position.latitude).toFixed(4),
-                            "lon": parseFloat(value.position.longitude).toFixed(4),
-                            "alt": parseInt(value.position.altitude)
+                            "lat": parseFloat(lat).toFixed(4),
+                            "lon": parseFloat(lon).toFixed(4),
+                            "alt": parseInt(alt)
                         },
-                        "batt": parseInt(value.position.batteryLevel),
-                        "lh": value.position.time
+                        "snr": parseFloat(value.snr),
+                        "batt": parseInt(batt),
+                        "lh": time
                     });
                 }
-
 
                 nodeList.sort((a, b) => {
                     // two undefined values should be treated as equal ( 0 )
@@ -136,6 +169,30 @@
                         return b.lh - a.lh;
                 });
 
+
+
+
+                $("#myNodeTable tbody").empty();
+                $("#myNodeTable tbody").append("<tr><td><b>User:</b></td><td>" + jsonData.myNode.user.longName + "</td></tr>");
+                $("#myNodeTable tbody").append("<tr><td><b>Id:</b></td><td>" + jsonData.myNode.user.id + "</td></tr>");
+                if (jsonData.myNode.position.latitude) {
+                    $("#myNodeTable tbody").append("<tr><td><b>Position:</b></td><td>" +
+                        /*      parseFloat(jsonData.myNode.position.latitude).toFixed(4) + " °, " +
+                              parseFloat(jsonData.myNode.position.longitude).toFixed(4) + " °, " +
+                              parseInt(jsonData.myNode.position.altitude) + " m, " +*/
+                        "</td></tr>");
+                }
+                else {
+                    $("#myNodeTable tbody").append("<tr><td><b>Position:</b></td><td></td></tr>");
+                }
+                if (jsonData.myNode.position.batteryLevel) {
+                    $("#myNodeTable tbody").append("<tr><td><b>Battery:</b></td><td>" + jsonData.myNode.position.batteryLevel + "</td></tr>");
+                }
+                else {
+                    $("#myNodeTable tbody").append("<tr><td><b>Battery:</b></td><td></td></tr>");
+                }
+
+
                 //Nodes Table
                 $('#nodes').val("");
                 iconFeatures = []
@@ -148,10 +205,10 @@
                     if (!isNaN(element.lh))
                         eleLh = new Date(element.lh * 1000).toLocaleString();
                     else
-                        eleLh = "---";
+                        eleLh = "";
 
                     if (isNaN(element.pos.lat)) {
-                        elePos = "---";
+                        elePos = "";
                     }
                     else {
                         elePos = element.pos.lat + "°, " + element.pos.lon + "°, " + element.pos.alt + " m";
@@ -160,40 +217,38 @@
                     }
 
                     if (isNaN(element.batt))
-                        eleBatt = "---";
+                        eleBatt = "";
                     else
                         eleBatt = element.batt + "&#37;";
 
-                    $("#nodesTable tbody").append("<tr><td>" + element.id +
-                        "</td><td>" + element.user +
+                    if (isNaN(element.snr))
+                        eleSnr = "";
+                    else
+                        eleSnr = element.snr + " dB";
+
+                    $("#nodesTable tbody").append("<tr><td> " + element.user +
+                        "</td><td><a href=\"javascript:toTarget('" + element.id + "')\">" + element.id + "</a>" +
                         "</td><td>" + elePos +
                         "</td><td>" + eleBatt +
-                        "</td><td>" +
+                        "</td><td>" + eleSnr +
                         "</td><td>" + eleLh +
                         "</td></tr>")
                 });
 
                 vectorSource.addFeatures(iconFeatures);
                 if (jsonData.packet.decoded.data.portnum == "TEXT_MESSAGE_APP") {
-                    $('#messages').val($('#messages').val() + jsonData.packet.fromId + ": " + jsonData.packet.decoded.data.text + '\\n');
+                    $('#messages').val($('#messages').val() + jsonData.nodes[jsonData.packet.fromId].user.longName + " (" + jsonData.packet.fromId + "): " + jsonData.packet.decoded.data.text + "\n");
                 }
-
             };
-            //ws.onopen = function() {
-            //   ws.send('{"asd":"lol"}');
-            //};
+
             ws.onclose = function (evt) {
-                $('#connStatus').removeClass('blue');
-                $('#connStatus').addClass('red');
+                $('#statusIcon').removeClass('blue');
+                $('#statusIcon').addClass('red');
                 writeConsole('Connection closed by server: ' + evt.code + ' ' + evt.reason);
             };
         }
 
         $(document).ready(function () {
-            mapInit();
-
-
-
             $('#send').click(function () {
                 console.log($('#message').val());
                 $('#message').val("");
@@ -204,29 +259,128 @@
 </head>
 
 <body>
-    <table id="nodesTable" class="table table-bordered table-condensed table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User</th>
-                <th>Position</th>
-                <th>Battery</th>
-                <th>SNR</th>
-                <th>Last Heard</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-    <div id="map" style="width:100%%; height:400px"></div><br />
-
-
-    ip:<input type="text" id="IPaddr" value="iz1kga.ddns.net">
-    port:<input type="text" id="srvPort" value="9000">
-    <button onclick='connectWS();'>Connect</button>
-    <div id="connStatus" class="circle red"></div>
-    <textarea id='console' style='width: 100%; height:150px'></textarea><br />
-
+    <br />
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-2">
+                <div class="card" style="min-height:350px">
+                    <div class="card-header">
+                        Connected Node
+                    </div>
+                    <div class="card-body">
+                        <table id="myNodeTable" class="table table-bordered table-condensed table-striped">
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card" style="min-height:350px">
+                    <div class="card-header">
+                        Received Nodes
+                    </div>
+                    <div class="card-body">
+                        <table id="nodesTable" class="table table-bordered table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Id</th>
+                                    <th>Position</th>
+                                    <th>Battery</th>
+                                    <th>SNR</th>
+                                    <th>Last Heard</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div id="map" style="width:100%; height:100%; min-height:300px"></div><br />
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-8">
+                <div class="card">
+                    <div class="card-header">
+                        Received Messages
+                    </div>
+                    <div class="card-body">
+                        <textarea id='messages' style='width: 100%; height:300px'></textarea><br />
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="row">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header">
+                                Connection
+                            </div>
+                            <div class="card-body">
+                                <div id="connectBox" class="flex">
+                                    <span class="verticalMiddleAlign">IP:</span><input class="verticalMiddleAlign"
+                                        type="text" id="IPaddr" value="2.36.142.249">
+                                </div>
+                                <div id="connectBox" class="flex">
+                                    <span class="verticalMiddleAlign">PORT:</span><input class="verticalMiddleAlign"
+                                        type="text" id="srvPort" value="9000">
+                                    <button class="verticalMiddleAlign" onclick='connectWS();'>Connect</button>
+                                    <div id="statusIcon" class="verticalMiddleAlign circle red"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header">
+                                Send Message
+                            </div>
+                            <div class="card-body">
+                                <div class="flex">
+                                    <span class="verticalMiddleAlign">To: </span>
+                                    <input class="verticalMiddleAlign" style="width: 100%;" type="text" id="toMsg">
+                                    <button class="verticalMiddleAlign" style="min-width: 100px" onclick='toAll()'>To
+                                        All</button>
+                                </div>
+                                <div class="flex">
+                                    <span class="verticalMiddleAlign">Message: </span>
+                                    <input class="verticalMiddleAlign" style="width: 100%;" type="text" id="msg2Send">
+                                    <button class="verticalMiddleAlign" style="min-width: 100px"
+                                        onclick=''>Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        Console
+                    </div>
+                    <div class="card-body">
+                        <textarea id='console' style='width: 100%; height:150px'></textarea><br />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+        crossorigin="anonymous"></script>
+    <script> mapInit(); </script>
 </body>
 
 </html>
