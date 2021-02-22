@@ -190,9 +190,9 @@
                 $("#myNodeTable tbody").append("<tr><td><b>Id:</b></td><td>" + jsonData.myNode.user.id + "</td></tr>");
                 if (jsonData.myNode.position.latitude) {
                     $("#myNodeTable tbody").append("<tr><td><b>Position:</b></td><td>" +
-                        /*      parseFloat(jsonData.myNode.position.latitude).toFixed(4) + " °, " +
+                              parseFloat(jsonData.myNode.position.latitude).toFixed(4) + " °, " +
                               parseFloat(jsonData.myNode.position.longitude).toFixed(4) + " °, " +
-                              parseInt(jsonData.myNode.position.altitude) + " m, " +*/
+                              parseInt(jsonData.myNode.position.altitude) + " m, " +
                         "</td></tr>");
                 }
                 else {
