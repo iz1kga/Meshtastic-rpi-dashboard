@@ -19,8 +19,8 @@
         var jsonData;
         var nodeList = [];
 
-        var lat = 45.07;
-        var lon = 7.51;
+        var lat = 45.10;
+        var lon = 7.50;
         var z = 10;
 
         var icon = "http://www.openstreetmap.org/openlayers/img/marker.png";
@@ -32,6 +32,7 @@
         var vectorLayer = new ol.layer.Vector({
             source: vectorSource,
         });
+
 
         function addMarker(lon, lat, icon, txt) {
             var iconStyle = new ol.style.Style({
@@ -61,6 +62,12 @@
         }
 
         function mapInit() {
+
+            var view = new ol.View({
+                center: ol.proj.fromLonLat([lon, lat]),
+                zoom: z
+            });
+
             var map = new ol.Map({
                 target: 'map',
                 layers: [
@@ -68,11 +75,17 @@
                         source: new ol.source.OSM()
                     })
                 ],
-                view: new ol.View({
-                    center: ol.proj.fromLonLat([lon, lat]),
-                    zoom: z
-                })
+                view: view
             });
+            var geolocation = new ol.Geolocation({
+                tracking: true
+            });
+            // bind the view's projection
+            geolocation.on('change:position', function () {
+                var p = geolocation.getPosition();
+                view.setCenter(ol.proj.fromLonLat([parseFloat(p[0]), parseFloat(p[1])]));
+            });
+
             map.addLayer(vectorLayer);
         }
 
