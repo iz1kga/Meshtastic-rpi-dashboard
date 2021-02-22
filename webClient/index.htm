@@ -236,8 +236,14 @@
                 });
 
                 vectorSource.addFeatures(iconFeatures);
+
                 if (jsonData.packet.decoded.data.portnum == "TEXT_MESSAGE_APP") {
-                    $('#messages').val($('#messages').val() + jsonData.nodes[jsonData.packet.fromId].user.longName + " (" + jsonData.packet.fromId + "): " + jsonData.packet.decoded.data.text + "\n");
+                    var msgLines = $('#messages').val().split("\n");
+                    var rxTime = new Date(jsonData.packet.rxTime * 1000).toLocaleString();
+                    var rxMsg = rxTime + " - " + jsonData.nodes[jsonData.packet.fromId].user.longName + " (" + jsonData.packet.fromId + "): " +
+                        jsonData.packet.decoded.data.text + "\n";
+                    if (rxMsg != msgLines[msgLines.length - 1])
+                        $('#messages').val($('#messages').val() + rxMsg);
                 }
             };
 
@@ -324,7 +330,7 @@
                             <div class="card-body">
                                 <div id="connectBox" class="flex">
                                     <span class="verticalMiddleAlign">IP:</span><input class="verticalMiddleAlign"
-                                        type="text" id="IPaddr" value="2.36.142.249">
+                                        type="text" id="IPaddr" value="localhost">
                                 </div>
                                 <div id="connectBox" class="flex">
                                     <span class="verticalMiddleAlign">PORT:</span><input class="verticalMiddleAlign"

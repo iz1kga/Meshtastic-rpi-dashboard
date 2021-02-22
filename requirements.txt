@@ -3,3 +3,4 @@ Pypubsub==4.0.3
 autobahn==17.10.1
 meshtastic==1.1.49
 pubsub==0.1.2
+configparser==5.0.1

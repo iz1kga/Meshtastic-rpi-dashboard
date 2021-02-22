@@ -1,4 +1,5 @@
 import sys
+import os
 
 from twisted.internet import reactor
 from twisted.python import log
@@ -8,6 +9,8 @@ from twisted.web.static import File
 from autobahn.twisted.websocket import WebSocketServerFactory, \
     WebSocketServerProtocol, \
     listenWS
+
+from daemons.prefab import run
 
 
 class BroadcastServerProtocol(WebSocketServerProtocol):
@@ -75,19 +78,27 @@ class BroadcastPreparedServerFactory(BroadcastServerFactory):
             print("prepared message sent to {}".format(c.peer))
 
 
-if __name__ == '__main__':
+class serverDaemon(run.RunDaemon):
+    def run(self):
+        runWebSocket("ws://0.0.0.0:9000", 9001)
 
+def runWebSocket(ws,httpPort):
+    workDir = os.path.dirname(__file__)+"/webClient/"
+    print(workDir)
     log.startLogging(sys.stdout)
 
     ServerFactory = BroadcastServerFactory
     # ServerFactory = BroadcastPreparedServerFactory
 
-    factory = ServerFactory("ws://0.0.0.0:9000")
+    factory = ServerFactory(ws)
     factory.protocol = BroadcastServerProtocol
     listenWS(factory)
 
-    webdir = File(".")
+    webdir = File(workDir)
     web = Site(webdir)
-    reactor.listenTCP(8080, web)
-
+    reactor.listenTCP(httpPort, web)
     reactor.run()
+
+
+if __name__ == '__main__':
+    runWebSocket("ws://0.0.0.0:9000", 9001)

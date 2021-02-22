@@ -1,6 +1,9 @@
-import asyncio
+from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory
+from twisted.internet import reactor
 
-from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientFactory
+import sys
+
+from twisted.python import log
 
 import json
 
@@ -11,17 +14,18 @@ from pubsub import pub
 import signal
 import sys
 
+from daemons.prefab import run
+
 
 class MyClientProtocol(WebSocketClientProtocol):
-    def __init__(self):
-        pub.subscribe(self.onReceive, "meshtastic.receive")
-        pub.subscribe(self.onConnection, "meshtastci.connection.established")
+    def __init__(self, ):
+        super().__init__()
         self.interface = meshtastic.SerialInterface()
+        pub.subscribe(self.onReceive, "meshtastic.receive")
         self.jsonTXT = ""
-
-    def __del__(self):
+    
+    def __exit__(self):
         self.interface.close()
-        print("closing serial")
 
     def onReceive(self, packet, interface):
         print("Serial data received")
@@ -32,11 +36,6 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.sendMessage(self.jsonTXT.encode("utf-8"))
         except Exception as e:
             print(e)
-
-    def onConnection(self, interface, topic=pub.AUTO_TOPIC):
-        print("serialconnect")
-        #cherrypy.engine.publish('websocket-broadcast', "{'test':'connected'}")
-        #interface.sendText("test hello!")
 
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
@@ -63,13 +62,20 @@ class MyClientProtocol(WebSocketClientProtocol):
 
     def onClose(self, wasClean, code, reason):
         print("WebSocket connection closed: {0}".format(reason))
+        self.__exit__()
+
+class clientDaemon(run.RunDaemon):
+    def run(self):
+        runClient('127.0.0.1', 9000)
+
+def runClient(host, port):
+    factory = WebSocketClientFactory("ws://"+host+":"+str(port))
+    
+    factory.protocol = MyClientProtocol
+
+    reactor.connectTCP(host, port, factory)
+    reactor.run()   
+
 
 if __name__ == '__main__':
-    factory = WebSocketClientFactory("ws://127.0.0.1:9000")
-    factory.protocol = MyClientProtocol
-    print("startloop")
-    loop = asyncio.get_event_loop()
-    coro = loop.create_connection(factory, '127.0.0.1', 9000)
-    loop.run_until_complete(coro)
-    loop.run_forever()
-    loop.close()
+    runClient('127.0.0.1', 9000)
