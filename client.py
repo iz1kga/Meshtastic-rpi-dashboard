@@ -30,7 +30,10 @@ class MyClientProtocol(WebSocketClientProtocol):
         self.jsonTXT = ""
         if "TORINOMETEO" in self.config:
             self.l = task.LoopingCall(self.getMeteoTM)
-            self.l.start(float(self.config['TORINOMETEO']['updateTime'])) # call every second
+            self.l.start(float(self.config['TORINOMETEO']['updateTime']))
+        if "BEACON" in self.config:
+            self.b = task.LoopingCall(self.sendBeacon)
+            self.b.start(float(self.config['BEACON']['updateTime']), False)
 
     def __exit__(self):
         self.interface.close()
@@ -55,6 +58,8 @@ class MyClientProtocol(WebSocketClientProtocol):
                                     "%\nPressione: "+data['pressure']+"mbar"+
                                     "\nwww.torinometeo.org",
                                     wantAck=True)
+    def sendBeacon(self):
+        self.interface.sendText(self.config['BEACON']['text'], wantAck=True)
 
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
