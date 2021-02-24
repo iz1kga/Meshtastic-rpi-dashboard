@@ -35,6 +35,7 @@ client.conf configuration file is provided to enable and setup Serial client fun
 The [TORINOMETEO] enables meteo data grab from www.torinometeo.org REST API
 
 `slug=SELECTEDSLUG` the desired slug can be retrieved here https://www.torinometeo.org/realtime/rete/, select the dsired station, the slug is in the URL: https://www.torinometeo.org/realtime/SLUG/live
+
 `updateTime=3600` the desired update time in seconds (a message will be sent every updateTime seconds)
 
 #### BEACON
@@ -42,6 +43,7 @@ The [TORINOMETEO] enables meteo data grab from www.torinometeo.org REST API
 The [BEACON] enables send text beacon
 
 `text=Beacon Text` Set the text that will be sent as beacon
+
 `updateTime=1500` Time in seconds, when this amount of time is elapsed te beacon is sent
 
 ### Disclaimer
