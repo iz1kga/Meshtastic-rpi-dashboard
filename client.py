@@ -1,29 +1,37 @@
+import urllib.request, json 
+from datetime import datetime
+
 from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory
-from twisted.internet import reactor
-
-import sys
-
+from twisted.internet import reactor, task
 from twisted.python import log
 
-import json
+import sys, os
 
 import meshtastic
 from pubsub import pub
 
-
 import signal
-import sys
 
 from daemons.prefab import run
 
+import configparser
 
 class MyClientProtocol(WebSocketClientProtocol):
     def __init__(self, ):
         super().__init__()
+        import configparser
+        self.config = configparser.ConfigParser()
+        self.configPath = os.path.dirname(__file__)+'/client.conf'
+        print(self.configPath)
+        self.config.read(self.configPath)
+        print(self.config.sections())
         self.interface = meshtastic.SerialInterface()
         pub.subscribe(self.onReceive, "meshtastic.receive")
         self.jsonTXT = ""
-    
+        if "TORINOMETEO" in self.config:
+            self.l = task.LoopingCall(self.getMeteoTM)
+            self.l.start(float(self.config['TORINOMETEO']['updateTime'])) # call every second
+
     def __exit__(self):
         self.interface.close()
 
@@ -36,6 +44,17 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.sendMessage(self.jsonTXT.encode("utf-8"))
         except Exception as e:
             print(e)
+
+    def getMeteoTM(self):
+        with urllib.request.urlopen("https://www.torinometeo.org/api/v1/realtime/data/"+self.config['TORINOMETEO']['slug']) as url:
+            data = json.loads(url.read().decode())
+            print(data['temperature'])
+            self.interface.sendText("Stazione "+data['station']['name']+
+                                    "\nTemperatura: "+data['temperature']+
+                                    "°C\nUmidità: "+data['relative_humidity']+
+                                    "%\nPressione: "+data['pressure']+"mbar"+
+                                    "\nwww.torinometeo.org",
+                                    wantAck=True)
 
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
@@ -70,11 +89,11 @@ class clientDaemon(run.RunDaemon):
 
 def runClient(host, port):
     factory = WebSocketClientFactory("ws://"+host+":"+str(port))
-    
+
     factory.protocol = MyClientProtocol
 
     reactor.connectTCP(host, port, factory)
-    reactor.run()   
+    reactor.run()
 
 
 if __name__ == '__main__':

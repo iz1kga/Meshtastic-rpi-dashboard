@@ -13,19 +13,14 @@ from client import clientDaemon
 if __name__ == '__main__':
 
     action = sys.argv[1]
-    serverLogfile = os.path.join(os.getcwd(), "server.log")
+    Logfile = os.path.join(os.getcwd(), "dashboard.log")
     serverPidfile = os.path.join(os.getcwd(), "server.pid")
-
-    clientLogfile = os.path.join(os.getcwd(), "client.log")
     clientPidfile = os.path.join(os.getcwd(), "client.pid")
 
-    logging.basicConfig(filename=serverLogfile, level=logging.DEBUG)
+    logging.basicConfig(filename=Logfile, level=logging.DEBUG)
     s = serverDaemon(pidfile=serverPidfile)
-
-    logging.basicConfig(filename=clientLogfile, level=logging.DEBUG)
     c = clientDaemon(pidfile=clientPidfile)
 
-    
     if action == "startServer":
         s.start()
     if action == "startClient":

@@ -25,6 +25,18 @@ You cant get the dashboard locally at http://localhost:9001/
 #### Remote Run
 Fully configurable service suite will be provided soon, server client and webclient have te ability to run on different machines
 
+## Configuration
+### Client
+
+client.conf configuration file is provided to enable and setup Serial client functionalities
+
+#### TORINOMETEO REST API
+
+The [TORINOMETEO] enables meteo data grab from www.torinometeo.org REST API
+
+`slug=SELECTEDSLUG` the desired slug can be retrieved here https://www.torinometeo.org/realtime/rete/, select the dsired station, the slug is in the URL: https://www.torinometeo.org/realtime/SLUG/live
+`updateTime=3600` the desired update time in seconds (a message will be sent every updateTime seconds)
+
 ### Disclaimer
 
 This software is experimental and I've still not considered all cyber security implication. Please Avoid unauthorized persons to acces your systems!
