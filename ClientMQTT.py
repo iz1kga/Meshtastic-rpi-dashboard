@@ -15,7 +15,7 @@ def onReceive(packet, interface):
         myInfo  = interface.getMyNodeInfo()
         myID = myInfo['user']['id']
         receivedNodes = interface.nodes
-        receivedNodes.pop(myID, None)
+        #receivedNodes.pop(myID, None)
         '''jsonTXT = (
             '{"nodes":'
             + json.dumps(interface.nodes)
