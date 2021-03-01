@@ -149,7 +149,7 @@ if __name__ == '__main__':
     getNodeInfo()
     pub.subscribe(updateImeshMap, "meshtastic.receive")
     atexit.register(lambda: interface.close)
+    
     serve(app, host='0.0.0.0', port='5000')
     #app.run(debug=False, use_reloader=False)
 
-    
