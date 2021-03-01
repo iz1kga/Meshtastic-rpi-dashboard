@@ -10,6 +10,9 @@ import paho.mqtt.client as mqtt
 
 import meshtastic
 from pubsub import pub
+
+from waitress import serve
+
 oldReceivedNodes = dict()
 receivedNodes = dict()
 myNodeInfo = dict()
@@ -135,6 +138,7 @@ def login():
         return flask.redirect(next or flask.url_for('index'))
     return flask.render_template('login.html', form=form)
 
+
 if __name__ == '__main__':
     interface = meshtastic.SerialInterface()
     client = mqtt.Client()
@@ -145,6 +149,7 @@ if __name__ == '__main__':
     getNodeInfo()
     pub.subscribe(updateImeshMap, "meshtastic.receive")
     atexit.register(lambda: interface.close)
-    app.run(debug=False, use_reloader=False)
+    serve(app, host='0.0.0.0', port='5000')
+    #app.run(debug=False, use_reloader=False)
 
     
