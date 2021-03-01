@@ -145,6 +145,4 @@ if __name__ == '__main__':
     getNodeInfo()
     pub.subscribe(updateImeshMap, "meshtastic.receive")
     atexit.register(lambda: interface.close)
-    app.run(debug=False, use_reloader=False)
-
-    
+    app.run(host= '0.0.0.0', debug=False, use_reloader=False)
