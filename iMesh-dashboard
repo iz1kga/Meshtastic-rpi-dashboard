@@ -30,7 +30,6 @@ app = Flask(__name__)
 
 app.config['BASIC_AUTH_USERNAME'] = config['AUTH']['username']
 app.config['BASIC_AUTH_PASSWORD'] = config['AUTH']['password']
-app.config['BASIC_AUTH_FORCE'] = True
 
 basic_auth = BasicAuth(app)
 
@@ -112,9 +111,15 @@ def send_css(path):
     return send_from_directory('css', path)
 
 @app.route('/')
+@basic_auth.required
 def index():
     getNodes()
-    return render_template('index.html', nodes=getNodes(), nodeInfo=getNodeInfo())
+    return render_template('index.html')
+
+@app.route('/public')
+def public():
+    getNodes()
+    return render_template('public.html')
 
 @app.route('/getNodes')
 def printNodes():
@@ -125,6 +130,7 @@ def printNodeInfo():
     return getNodeInfo()
 
 @app.route('/sendMessage', methods=['POST'])
+@basic_auth.required
 def sendMessage():
     if request.method == 'POST':
         msg = request.form['fmsg']
@@ -132,6 +138,7 @@ def sendMessage():
     return redirect(url_for('index'))
 
 @app.route('/setNode', methods=['POST'])
+@basic_auth.required
 def setData():
     if request.method == 'POST':
         interface.setOwner(request.form['flongName'])
