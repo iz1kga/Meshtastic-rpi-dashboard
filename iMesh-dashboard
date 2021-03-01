@@ -93,8 +93,10 @@ def getNodes():
             batt = batt + ("%" if (batt != "") else "")
         else:
             pos = ""
+            since = ""
             lh = ""
             batt = ""
+            
         snr = str(value.get('snr'))
         snr = snr + (" dB" if (snr != "") else "")
         nodesList.append({"user":value['user']['longName'], "id":node, "pos":pos, "lh":lh, "batt":batt, "snr":snr, "since":since})
