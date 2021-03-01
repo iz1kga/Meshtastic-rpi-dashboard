@@ -7,7 +7,6 @@ import json
 import copy
 import atexit
 import time
-import timeago
 
 from datetime import datetime
 
@@ -69,10 +68,7 @@ def getFloat(fnum):
         return ""
 
 def getLH(ts, default=""):
-    return datetime.fromtimestamp(ts).strftime('%d-%m-%Y %H:%M:%S') if ts else default
-
-def getTimeAgo(ts, default=""):
-    return timeago.format(datetime.fromtimestamp(ts), datetime.now()) if ts else default
+    return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S') if ts else default
 
 def getNodes():
     nodesList = []
@@ -89,7 +85,6 @@ def getNodes():
             else:
                 pos=""
             lh = getLH(lhTS)
-            since = getTimeAgo(lhTS)
             batt = str(value['position'].get('batteryLevel', ""))
             batt = batt + ("%" if (batt != "") else "")
         else:
@@ -98,7 +93,7 @@ def getNodes():
             batt = ""
         snr = str(value.get('snr'))
         snr = snr + (" dB" if (snr != "") else "")
-        nodesList.append({"user":value['user']['longName'], "id":node, "pos":pos, "lh":lh, "batt":batt, "snr":snr, "since":since})
+        nodesList.append({"user":value['user']['longName'], "id":node, "pos":pos, "lh":lh, "batt":batt, "snr":snr})
         nodesList = sorted(nodesList, key=lambda k: k['lh'], reverse=True) 
     return(json.dumps(nodesList))
 
@@ -165,7 +160,7 @@ if __name__ == '__main__':
     interface = meshtastic.SerialInterface()
     
     client = mqtt.Client()
-    client.username_pw_set(username=config['MQTT']['username'], password=config['MQTT']['password'])
+    client.username_pw_set(username="iz1kga", password="kgaTestPassw0rd")
     client.connect(config['MQTT']['host'], int(config['MQTT']['port']), int(config['MQTT']['keepalive']))
     client.loop_start()
 
