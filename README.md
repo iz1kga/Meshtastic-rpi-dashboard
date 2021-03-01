@@ -12,6 +12,11 @@
 
 Edit app.conf following comments
 
+## Configuration
+
+Edit app.conf following comments
+
+
 ### Disclaimer
 
 This software is experimental and I've still not considered all cyber security implication. Please Avoid unauthorized persons to acces your systems!
