@@ -1,3 +1,6 @@
 *.log
 *.pid
 *.gpg
+.*
+__pycache__/
+!/.gitignore
