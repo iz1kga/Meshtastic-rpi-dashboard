@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <script src="js/jquery-3.5.1.min.js"></script>
+  <title>Node Dashboard</title>
+  <script>
+
+    function getNodes() {
+      $.getJSON("/getNodes", function (data) {
+        $("#nodesTable tbody").empty();
+        data.forEach(element => {
+          $("#nodesTable tbody").append("<tr><td> " + element.user +
+            "</td><td>" + element.id + "</a>" +
+            "</td><td>" + element.pos +
+            "</td><td>" + element.batt +
+            "</td><td>" + element.snr +
+            "</td><td>" + element.lh +
+            "</td></tr>")
+        });
+      });
+    }
+
+    function fillNodeForm() {
+      $.getJSON("/getNodeInfo", function (data) {
+        $("#flongName").val(data.user.longName);
+        $("#flatitude").val(parseFloat(data.position.latitude).toFixed(4));
+        $("#flongitude").val(parseFloat(data.position.longitude).toFixed(4));
+        $("#faltitude").val(parseInt(data.position.altitude));
+      });
+    }
+
+
+    $(document).ready(function () {
+      console.log("ready!");
+      getNodes();
+      fillNodeForm()
+    });
+  </script>
+</head>
+
+<body>
+  <br />
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col">
+        <div class="card" style="min-height:350px">
+          <div class="card-header">
+            Received Nodes
+          </div>
+          <div class="card-body">
+            <table id="nodesTable" class="table table-bordered table-condensed table-striped">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Id</th>
+                  <th>Position</th>
+                  <th>Battery</th>
+                  <th>SNR</th>
+                  <th>Last Heard</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col-4">
+        <div class="card" style="min-height:350px">
+          <div class="card-header">
+            Send Message
+          </div>
+          <div class="card-body">
+            <form action="/sendMessage" method="post">
+              <label for="fmsg">Messaggio</label>
+              <input type="text" id="fmsg" name="fmsg"><br><br>
+              <input type="submit" value="Send">
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-8">
+        <div class="card" style="min-height:350px">
+          <div class="card-header">
+            Connected Node
+          </div>
+          <div class="card-body">
+            <form action="/setNode" method="post">
+              <label for="flongName">Long Name</label>
+              <input type="text" id="flongName" name="flongName"><br><br>
+              <label for="flatitude">Latitude</label>
+              <input type="text" id="flatitude" name="flatitude"><br><br>
+              <label for="flongitude">Longitude</label>
+              <input type="text" id="flongitude" name="flongitude"><br><br>
+              <label for="faltitude">Altitude</label>
+              <input type="text" id="faltitude" name="faltitude"><br><br>
+              <input type="submit" value="SET">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            Console
+          </div>
+          <div class="card-body">
+            <textarea id='console' style='width: 100%; height:150px'></textarea><br />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
