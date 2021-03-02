@@ -1,22 +1,34 @@
 # Meshtastic-rpi-dashboard
+### Create Dashboard for serial connected meshtastic device
+
 ## Setup:
-
-`git clone https://github.com/iz1kga/Meshtastic-rpi-dashboard.git`
-`cd Meshtastic-rpi-dashboard`
-`sudo pip3 install -r requirements.txt`
-
-## Run:
-./iMeshDashboard, better way (like service) will be implemented
+`sudo pip3 install iMesh-Dashboard`
 
 ## Configuration
 
-Edit app.conf following comments
+Edit /usr/local/iMeshDashboard/conf/app.conf
 
-## Configuration
+```
+[AUTH] #authentication for dashboard
+username=user
+password=testPassword
 
-Edit app.conf following comments
+[NET] # binding address and port for dashboard
+bind=0.0.0.0
+port=5000
 
+[MQTT] #mqtt server for publishing received nodes (i use it to render imeshmap.iz1kga.it)
+host=mqtt.test.org
+port=1883
+username=MQTTuser
+password=MQTTpassword
+keepalive=60
+enabled=True #set False i you dont want to publish to MQTT
+```
+
+## Run
+from console run `iMeshDashboard`, right now I'm using screen to keep daskbaord running... I've to find a better way to do that, but I'm not so skilled so... be patient
 
 ### Disclaimer
 
-This software is experimental and I've still not considered all cyber security implication. Please Avoid unauthorized persons to acces your systems!
+This software is experimental. Please Avoid unauthorized persons to acces your systems!

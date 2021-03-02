@@ -30,7 +30,7 @@ interface = meshtastic.SerialInterface()
     
 client = mqtt.Client()
 client.username_pw_set(username=config['MQTT']['username'], password=config['MQTT']['password'])
-client.connect(config['MQTT']['host'], int(config['MQTT']['port']), int(config['MQTT']['keepalive']))
+
 
 app = Flask(__name__, template_folder=dataPath+'/templates')
 
@@ -59,7 +59,8 @@ def updateImeshMap():
                         client.publish("receivedNodes/"+node, json.dumps(nodeValue))
                 else:
                     print(" nuovo nodo ricevuto: "+node +" - "+ nodeValue['user']['longName'])
-                    client.publish("receivedNodes/"+node, json.dumps(nodeValue))
+                    if(config['MQTT']['enabled']=="True"):
+                        client.publish("receivedNodes/"+node, json.dumps(nodeValue))
                     print(str(nodeValue['position']['time']))
             except Exception as e:
                 print(e)       
@@ -113,10 +114,10 @@ def getNodes():
 
 @app.route('/js/<path:path>')
 def send_js(path):
-    return send_from_directory('js', path)
+    return send_from_directory(dataPath+'/js', path)
 @app.route('/css/<path:path>')
 def send_css(path):
-    return send_from_directory('css', path)
+    return send_from_directory(dataPath+'/css', path)
 
 @app.route('/')
 @basic_auth.required
@@ -176,13 +177,14 @@ def login():
     return flask.render_template('login.html', form=form)
 
 def main():
-    client.loop_start()
+    if(config['MQTT']['enabled']=="True"):
+        client.connect(config['MQTT']['host'], int(config['MQTT']['port']), int(config['MQTT']['keepalive'])) 
+        client.loop_start()
     getNodeInfo()
     updateImeshMap()    
     pub.subscribe(updateImeshMap, "meshtastic.receive")
     atexit.register(lambda: interface.close())
     serve(app, host=config['NET']['bind'], port=config['NET']['port'])
-
 
 if __name__ == '__main__':
     main()
