@@ -30,6 +30,7 @@ interface = meshtastic.SerialInterface()
     
 client = mqtt.Client()
 client.username_pw_set(username=config['MQTT']['username'], password=config['MQTT']['password'])
+print(config['MQTT']['enabled'])
 
 
 app = Flask(__name__, template_folder=dataPath+'/templates')
@@ -60,6 +61,9 @@ def updateImeshMap():
                 else:
                     print(" nuovo nodo ricevuto: "+node +" - "+ nodeValue['user']['longName'])
                     if(config['MQTT']['enabled']=="True"):
+                        nodeValue['receivedBy'] = {"longName":myNodeInfo['user']['longName'], "id":myNodeInfo['user']['id']}
+                        print("--- --- ---")
+                        print(nodeValue)
                         client.publish("receivedNodes/"+node, json.dumps(nodeValue))
                     print(str(nodeValue['position']['time']))
             except Exception as e:
