@@ -121,15 +121,15 @@
           }
         }
       }
-
+      var timeSpan = (GetURLParameter('since') ? GetURLParameter('since') : '6');
       for (k = 0; k < nodes.length; k++) {
-        if(parseInt(nodes[k][5]) <= parseInt(GetURLParameter('since')))
+        if(parseInt(nodes[k][5]) <= parseInt(timeSpan))
         {
             locations.push(nodes[k]);
         }
       }
-
-      var selectedSpan = 'H'+GetURLParameter('since');
+      
+      var selectedSpan = 'H'+ timeSpan;
       document.getElementById(selectedSpan).classList.add("bold");
 
 
@@ -200,7 +200,7 @@
         tracking: true
       });
       geolocation.on('change', function (evt) {
-        console.log(geolocation.getPosition());
+        //console.log(geolocation.getPosition());
         map.getView().setCenter(geolocation.getPosition());
       });
 
