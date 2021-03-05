@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>iMesh Received Nodes</title>
+  <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+  <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+  <script
+    src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+  <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>
+  <style>
+    .bold {
+      font-weight: bold;
+    }
+
+    #container {
+      height: 400px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      padding: 0px;
+      margin: 0px;
+    }
+
+    .map {
+      height: 100%;
+      width: 100%;
+    }
+
+    .ol-popup {
+      position: absolute;
+      background-color: white;
+      -webkit-filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+      filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #cccccc;
+      bottom: 12px;
+      left: -50px;
+      min-width: 300px;
+    }
+
+    .ol-popup:after,
+    .ol-popup:before {
+      top: 100%;
+      border: solid transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .ol-popup:after {
+      border-top-color: white;
+      border-width: 10px;
+      left: 48px;
+      margin-left: -10px;
+    }
+
+    .ol-popup:before {
+      border-top-color: #cccccc;
+      border-width: 11px;
+      left: 48px;
+      margin-left: -11px;
+    }
+
+    .ol-popup-closer {
+      text-decoration: none;
+      position: absolute;
+      top: 2px;
+      right: 8px;
+    }
+
+    .ol-popup-closer:after {
+      content: "✖";
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="container">
+    <div id="timeSpan">
+      <A HREF="/map?since=72"><span id="H72">72h</span></A>&nbsp;
+      <A HREF="/map?since=48"><span id="H48">48h</span></A>&nbsp;
+      <A HREF="/map?since=36"><span id="H36">36h</span></A>&nbsp;
+      <A HREF="/map?since=24"><span id="H24">24h</span></A>&nbsp;
+      <A HREF="/map?since=12"><span id="H12">12h</span></A>&nbsp;
+      <A HREF="/map?since=6"><span id="H6">6h</span></A>&nbsp;
+      <A HREF="/map?since=3"><span id="H3">3h</span></A>&nbsp;
+      <A HREF="/map?since=1"><span id="H1">1h</span></A>&nbsp;
+      <div id="map"></div>
+
+
+      <div id="map" class="map"></div>
+      <div id="popup" class="ol-popup">
+        <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+        <div id="popup-content"></div>
+      </div>
+    </div>
+    <script>
+      var lat = 45.1;
+      var lon = 7.50;
+      var z = 10;
+      var myProjectionName = "EPSG:3857";
+      var nodes = {{ nodesList | safe }};
+      var locations = [];
+
+
+      function GetURLParameter(sParam) {
+        var sPageURL = window.location.search.substring(1);
+        var sURLVariables = sPageURL.split('&');
+        for (var i = 0; i < sURLVariables.length; i++) {
+          var sParameterName = sURLVariables[i].split('=');
+          if (sParameterName[0] == sParam) {
+            return sParameterName[1];
+          }
+        }
+      }
+
+      for (k = 0; k < nodes.length; k++) {
+        if(parseInt(nodes[k][5]) <= parseInt(GetURLParameter('since')))
+        {
+            locations.push(nodes[k]);
+        }
+      }
+
+      var selectedSpan = 'H'+GetURLParameter('since');
+      document.getElementById(selectedSpan).classList.add("bold");
+
+
+      /**
+       * Elements that make up the popup.
+       */
+      var container = document.getElementById('popup');
+      var content = document.getElementById('popup-content');
+      var closer = document.getElementById('popup-closer');
+
+
+      /**
+       * Add a click handler to hide the popup.
+       * @return {boolean} Don't follow the href.
+       */
+      closer.onclick = function () {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+      };
+
+
+      /**
+       * Create an overlay to anchor the popup to the map.
+       */
+      var overlay = new ol.Overlay({
+        element: container,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250
+        }
+      });
+
+
+      var features = [];
+      for (var i = 0; i < locations.length; i++) {
+        features.push(coloredSvgMarker([locations[i][2], locations[i][1]], locations[i][0], locations[i][3]));
+      }
+
+      var vectorSource = new ol.source.Vector({ // VectorSource({
+        features: features
+      });
+
+      var vectorLayer = new ol.layer.Vector({ // VectorLayer({
+        source: vectorSource
+      });
+
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({ // TileLayer({
+            source: new ol.source.OSM()
+          }), vectorLayer
+        ],
+        overlays: [overlay],
+        target: 'map',
+        view: new ol.View({
+          projection: myProjectionName,
+          center: ol.proj.fromLonLat([lon, lat]),
+          zoom: z
+        })
+      });
+
+      // make the map's view to zoom and pan enough to display all the points
+      //map.getView().fit(vectorSource.getExtent()-5, map.getSize());
+      var proj1 = ol.proj.get(myProjectionName);
+      var geolocation = new ol.Geolocation({
+        projection: myProjectionName,
+        tracking: true
+      });
+      geolocation.on('change', function (evt) {
+        console.log(geolocation.getPosition());
+        map.getView().setCenter(geolocation.getPosition());
+      });
+
+      /**
+       * Add a click handler to the map to render the popup.
+       */
+      map.on('singleclick', function (evt) {
+        var name = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+          return feature.get('name');
+        })
+        if (name) {
+          var textContent = "";
+          for (i = 0; i < locations.length; i++) {
+            if (locations[i].indexOf(name) >= 0) {
+              textContent = locations[i][4];
+            }
+          }
+          container.style.display = "block";
+          var coordinate = evt.coordinate;
+          content.innerHTML = textContent;
+          overlay.setPosition(coordinate);
+        } else {
+          container.style.display = "none";
+        }
+      });
+      map.on('pointermove', function (evt) {
+        map.getTargetElement().style.cursor = map.hasFeatureAtPixel(evt.pixel) ? 'pointer' : '';
+      });
+
+
+      function coloredSvgMarker(lonLat, name, color, text) {
+        if (!color) color = 'red';
+        var feature = new ol.Feature({
+          geometry: new ol.geom.Point(ol.proj.fromLonLat(lonLat)),
+          name: name
+        });
+        var svg = '<svg version="1.0" xmlns="http://www.w3.org/2000/svg"  width="32.000000pt" height="32.000000pt" viewBox="0 0 512.000000 512.000000"  preserveAspectRatio="xMidYMid meet">' +
+          '<g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="' + color + '">' +
+          '<path d="M497 5042 c-230 -330 -376 -714 -429 -1132 -16 -124 -15 -468 1 -595 53 -415 194 -786 428 -1126 37 -55 59 -77 66 -71 7 5 67 50 134 101 l122 91 -74 110 c-174 259 -298 590 -339 905 -21 154 -21 426 0 580 41 314 164 643 338 904 l74 110 -133 100 -134 100 -54 -77z"/>' +
+          '<path d="M4434 5019 l-132 -100 74 -110 c129 -193 228 -418 289 -655 46 -178 65 -335 65 -539 0 -204 -19 -361 -65 -539 -61 -238 -161 -464 -290 -656 l-74 -110 122 -91 c67 -51 127 -96 134 -101 7 -6 29 16 66 71 234 340 375 711 428 1126 16 127 17 471 1 595 -45 349 -153 673 -320 960 -48 81 -160 251 -165 249 -1 0 -61 -45 -133 -100z"/>' +
+          '<path d="M1313 4457 c-267 -390 -330 -912 -164 -1366 35 -96 116 -252 170 -327 l37 -52 132 99 c86 65 130 104 126 112 -4 7 -20 31 -36 54 -47 69 -116 222 -142 315 -66 229 -59 481 17 703 29 83 85 197 134 272 20 29 34 55 32 57 -17 14 -246 184 -254 188 -5 3 -29 -22 -52 -55z"/>' +
+          '<path d="M3634 4423 c-71 -53 -131 -98 -133 -99 -2 -2 12 -28 32 -57 190 -287 246 -645 151 -975 -26 -93 -95 -246 -142 -315 -16 -23 -32 -47 -36 -54 -4 -8 40 -47 126 -112 l132 -99 37 52 c185 258 283 623 258 961 -19 263 -117 544 -258 741 l-38 54 -129 -97z"/>' +
+          '<path d="M2485 4110 c-339 -55 -524 -420 -369 -726 36 -72 125 -164 195 -203 l56 -31 -569 -1566 c-313 -861 -568 -1568 -566 -1570 2 -2 65 27 139 65 760 384 1618 384 2378 0 74 -38 137 -67 139 -65 2 2 -253 709 -566 1570 l-569 1566 56 31 c150 83 251 257 251 435 0 299 -282 542 -575 494z m455 -2451 c206 -567 376 -1037 378 -1044 2 -10 -18 -8 -80 7 -444 104 -912 104 -1356 0 -62 -15 -82 -17 -80 -7 8 34 754 2075 758 2075 3 0 174 -464 380 -1031z"/></g></svg>';
+
+        feature.setStyle(
+          new ol.style.Style({
+            image: new ol.style.Icon({
+              anchor: [0.5, 1.0],
+              anchorXUnits: 'fraction',
+              anchorYUnits: 'fraction',
+              src: 'data:image/svg+xml,' + escape(svg),
+              scale: 0.7,
+            }),
+            text: new ol.style.Text({
+              text: name,
+              fill: new ol.style.Fill({ color: 'black' }),
+              stroke: new ol.style.Stroke({ color: 'white', width: 1 }),
+              font: 'bold 12px Arial, Verdana, Helvetica, sans-serif',
+              offsetX: 0,
+              offsetY: -40
+            })
+          })
+        );
+        return feature;
+      }
+    </script>
+    <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+    </script>
+</body>
+
+</html>
