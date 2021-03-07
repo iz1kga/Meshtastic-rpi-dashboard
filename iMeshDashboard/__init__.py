@@ -70,16 +70,26 @@ def getMapNodeInfo(node):
                       "</table></div>")
         return color, textContent
 
-def updateImeshMap():
+def updateImeshMap(interface, packet):
     global oldReceivedNodes
     global receivedNodes
     global mapNodes
     mapNodes = []
     receivedNodes = copy.deepcopy(interface.nodes)
+    
+    if packet is not None:
+        print("Packet received:")
+        print(packet)
+        hop = packet.get('hopLimit', None)
+        print(hop)
+        if (hop is not None) and (myNodeInfo['user']['id'] != packet.get('fromId')):
+            print("Pushing received node info")
+            client.publish("meshInfo/hopInfo", json.dumps({"receivedNode":packet.get('fromId'), "receiverNode":myNodeInfo['user']['id'],
+                           "hopLimit":packet.get('hopLimit'), "rxTime":packet.get('rxTime')}))
+            print("pushed")
     try:
         for node, nodeValue in receivedNodes.items():
             try:
-                print("Updating Maplist")
                 print(nodeValue['user']['longName'])
                 mapNodes.append([nodeValue['user']['longName'], nodeValue['position']['latitude'],
                                  nodeValue['position']['longitude'], getMapNodeInfo(nodeValue)[0], getMapNodeInfo(nodeValue)[1], getHourDiff(nodeValue['position']['time'])])
@@ -92,7 +102,6 @@ def updateImeshMap():
                 else:
                     print(" nuovo nodo ricevuto: "+node +" - "+ nodeValue['user']['longName'])
                     if(config['MQTT']['enabled']=="True"):
-                        nodeValue['receivedBy'] = {"longName":myNodeInfo['user']['longName'], "id":myNodeInfo['user']['id']}
                         print("--- --- ---")
                         print(nodeValue)
                         client.publish("receivedNodes/"+node, json.dumps(nodeValue))
@@ -220,11 +229,12 @@ def login():
     return flask.render_template('login.html', form=form)
 
 def main():
+
     if(config['MQTT']['enabled']=="True"):
         client.connect(config['MQTT']['host'], int(config['MQTT']['port']), int(config['MQTT']['keepalive']))
         client.loop_start()
     getNodeInfo()
-    updateImeshMap()
+    updateImeshMap(interface, None)
     pub.subscribe(updateImeshMap, "meshtastic.receive")
     atexit.register(lambda: interface.close())
     serve(app, host=config['NET']['bind'], port=config['NET']['port'])
