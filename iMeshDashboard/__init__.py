@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template, request, send_from_directory, url_for, redirect
 from flask_basicauth import BasicAuth
+from flask_apscheduler import APScheduler
 import requests
 import json
 import copy
@@ -41,6 +42,10 @@ app.config['BASIC_AUTH_PASSWORD'] = config['AUTH']['password']
 
 basic_auth = BasicAuth(app)
 
+def sendPosition():
+    print("Sending Position Beacon")
+    interface.sendPosition(float(config['Position']['lat']), float(config['Position']['lon']), int(config['Position']['alt']), int(time.time()))
+
 def getNodeInfo():
     global myNodeInfo
     myNodeInfo = interface.getMyNodeInfo()
@@ -76,7 +81,7 @@ def updateImeshMap(interface, packet):
     global mapNodes
     mapNodes = []
     receivedNodes = copy.deepcopy(interface.nodes)
-    
+
     if packet is not None:
         print("Packet received:")
         print(packet)
@@ -98,7 +103,7 @@ def updateImeshMap(interface, packet):
                     print(str(nodeValue['position']['time']) +" "+ str(oldReceivedNodes[node]['position']['time']))
                     if nodeValue['position']['time'] > oldReceivedNodes[node]['position']['time']:
                         print(node +" - "+ nodeValue['user']['longName'] +" aggiornato")
-                        client.publish("receivedNodes/"+node, json.dumps(nodeValue))       
+                        client.publish("receivedNodes/"+node, json.dumps(nodeValue))
                 else:
                     print(" nuovo nodo ricevuto: "+node +" - "+ nodeValue['user']['longName'])
                     if(config['MQTT']['enabled']=="True"):
@@ -229,6 +234,13 @@ def login():
     return flask.render_template('login.html', form=form)
 
 def main():
+    scheduler = APScheduler()
+    if(config['Position']['enabled']=='True'):
+        print("setting postition info")
+        scheduler.add_job(func=sendPosition, trigger='interval', id='sendPos', seconds=int(config['Position']['interval']))
+        interface.sendPosition(float(config['Position']['lat']), float(config['Position']['lon']), int(config['Position']['alt']), int(time.time()))
+        interface.writeConfig()
+    scheduler.start()
 
     if(config['MQTT']['enabled']=="True"):
         client.connect(config['MQTT']['host'], int(config['MQTT']['port']), int(config['MQTT']['keepalive']))
