@@ -142,8 +142,8 @@ def getNodes():
             lhTS = value['position'].get('time')
             if (lhTS is None) or (lhTS < (int(time.time())-86400)):
                 continue
-            if 'latitude' in value['position'] and 'longitude' in value['position'] and 'altitude' in value['position']:
-                pos = getFloat(value['position'].get('latitude')) +"°, "+getFloat(value['position'].get('longitude')) + "°, " + str(value['position'].get('altitude'))+"m"
+            if 'latitude' in value['position'] and 'longitude' in value['position']:
+                pos = getFloat(value['position'].get('latitude')) +"°, "+getFloat(value['position'].get('longitude')) + "°, " + str(value['position'].get('altitude', '---'))+"m"
             else:
                 pos=""
             lh = getLH(lhTS)
