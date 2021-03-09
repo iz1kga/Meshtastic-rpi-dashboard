@@ -1,3 +1,40 @@
 {% extends "base.html" %}
 
-{% block content %}LANDING PAGE{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-4">
+            <div class="card" style="min-height:350px">
+                <div class="card-header">
+                    <span id="nodeInfo">Node Info</span>
+                </div>
+                <div class="card-body">
+                    Hardware:{{ info['hw_model']}}<br>
+                    Firmware:{{ info['firmware_version']}}<br>
+                    Region:{{ info['region']}}<br>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="min-height:350px">
+                <div class="card-header">
+                    <span id="nodeInfo">Statistics</span>
+                </div>
+                <div class="card-body">
+                    TBD
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="min-height:350px">
+                <div class="card-header">
+                    <span id="nodeInfo">TBS</span>
+                </div>
+                <div class="card-body">
+                    TBD
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -28,6 +28,7 @@ setuptools.setup(
                                               'iMeshDashboard/templates/base.html']),
                 ('iMeshDashboard/css', ['iMeshDashboard/css/bootstrap.min.css']),
                 ('iMeshDashboard/js', ['iMeshDashboard/js/bootstrap.bundle.min.js', 'iMeshDashboard/js/jquery-3.5.1.min.js']),
+                ('iMeshDashboard/img', ['iMeshDashboard/img/iMesh.png', 'iMeshDashboard/img/iMeshLight.png']),
     ],
     install_requires=["configparser>=5.0.1", "Flask==1.1.2", "Flask-BasicAuth==0.2.0", "meshtastic>=1.1.49",
                       "paho-mqtt==1.5.1", "timeago>=1.0.15", "waitress==1.4.4", "Flask-APScheduler==1.11.0"],

@@ -14,21 +14,44 @@
 </head>
 
 <body>
-    {% block header %}
-    <br />
-    <A HREF="/">home</A>
-    <A HREF="/lh">Last Heard</A>
-    <A HREF="/map">Map</A>
-    <A HREF="/private/config">Node Config</A>
+    {% block navBar %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">
+            <img src="/img/iMeshLight.png" width="30" height="30" alt="">
+            {{ nodeInfo['user']['longName'] }} ({{ nodeInfo['user']['longName'] }})
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/lh">Last Heard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/map">Map</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/private/config">Configuration</a>
+                </li>
+        </div>
+    </nav>
     {% endblock %}
+
     <div class="container-fluid">
+        <br/>
         {% block content %}{% endblock %}
+        <br/>
     </div>
-    <div id="footer">
+
+    <footer>
         {% block footer %}
-        &copy; Copyright 2010 by <a href="http://domain.invalid/">you</a>.
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            <a class="text-dark" href="https://github.com/iz1kga/Meshtastic-rpi-dashboard">iMesh Node Dashboard - IZ1KGA, IW1GEU</a>
+        </div>
         {% endblock %}
-    </div>
+    </footer>
     {% block footer_script %}
     <script src="/js/bootstrap.bundle.min.js"></script>
     {% endblock %}
