@@ -162,28 +162,34 @@ def send_js(path):
 @app.route('/css/<path:path>')
 def send_css(path):
     return send_from_directory(dataPath+'/css', path)
+@app.route('/img/<path:path>')
+def send_img(path):
+    return send_from_directory(dataPath+'/img', path)
 
 @app.route('/')
 def indexPage():
     getNodes()
-    return render_template('index.html', Title="iMesh Node Landing Page")
+    return render_template('index.html', Title="iMesh Node Landing Page", 
+                                         nodeInfo=myNodeInfo, info=interface.myInfo)
 
 @app.route('/lh')
 def lhPage():
     getNodes()
-    return render_template('lh.html', Title="Last Heard")
+    return render_template('lh.html', Title="Last Heard", 
+                                      nodeInfo=myNodeInfo)
 
 @app.route('/map')
 def mapPage():
     getNodes()
-    return render_template('map.html', nodesList=mapNodes, Title="Nodes Map")
+    return render_template('map.html', nodesList=mapNodes, Title="Nodes Map", 
+                                       nodeInfo=myNodeInfo)
 
 @app.route('/private/config')
 @basic_auth.required
 def configPage():
     getNodes()
-    return render_template('config.html')
-
+    return render_template('config.html', Title="Nodes Map", 
+                                          nodeInfo=myNodeInfo)
 
 @app.route('/getNodes')
 def printNodes():
@@ -203,8 +209,9 @@ def sendMessage():
 
 @app.route('/setNode', methods=['POST'])
 @basic_auth.required
-def setData():
+def setNode():
     if request.method == 'POST':
+        print(request.form)
         interface.setOwner(request.form['flongName'])
         prefs = interface.radioConfig.preferences
         alt = int(request.form['faltitude'])
@@ -214,7 +221,7 @@ def setData():
         prefs.fixed_position = True
         interface.sendPosition(lat, lon, alt, ts)
         interface.writeConfig()
-    return redirect(url_for('index'))
+    return redirect(url_for('configPage'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -249,6 +256,8 @@ def main():
     pub.subscribe(updateImeshMap, "meshtastic.receive")
     atexit.register(lambda: interface.close())
     serve(app, host=config['NET']['bind'], port=config['NET']['port'])
+    #only for debug!
+    #app.run(debug=True, use_reloader=False)
 
 if __name__ == '__main__':
     main()

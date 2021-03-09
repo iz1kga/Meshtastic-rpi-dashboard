@@ -1,82 +1,5 @@
 {% extends "base.html" %}
-{% block head_script %}
-<script>
-
-  var longNameEditing = false;
-  var latitudeEditing = false;
-  var altitudeEditing = false;
-  var longitudeEditing = false;
-
-  function getNodes() {
-    $.getJSON("/getNodes", function (data) {
-      $("#nodesTable tbody").empty();
-      data.forEach(element => {
-        $("#nodesTable tbody").append("<tr><td> " + element.user +
-          "</td><td>" + element.id + "</a>" +
-          "</td><td>" + element.pos +
-          "</td><td>" + element.batt +
-          "</td><td>" + element.snr +
-          "</td><td>" + element.lh + " - " + element.since +
-          "</td></tr>")
-      });
-    });
-  }
-
-  function fillNodeForm() {
-    $.getJSON("/getNodeInfo", function (data) {
-      $("#fid").text(data.user.id);
-      if (!longNameEditing)
-        $("#flongName").val(data.user.longName);
-      if (!latitudeEditing)
-        $("#flatitude").val(parseFloat(data.position.latitude).toFixed(4));
-      if (!longitudeEditing)
-        $("#flongitude").val(parseFloat(data.position.longitude).toFixed(4));
-      if (!altitudeEditing)
-        $("#faltitude").val(parseInt(data.position.altitude));
-    });
-  }
-
-  $(document).ready(function () {
-    console.log("ready!");
-    getNodes();
-    fillNodeForm();
-    $("#flongName").focusin(function () { longNameEditing = true });
-    $("#flatitude").focusin(function () { altitudeEditing = true });
-    $("#flongitude").focusin(function () { longitudeEditing = true });
-    $("#faltitude").focusin(function () { latitudeEditing = true });
-    setInterval(getNodes, 30000);
-    setInterval(fillNodeForm, 5000);
-  });
-</script>
-{% endblock %}
-
 {% block content %}
-<div class="row">
-  <div class="col">
-    <div class="card" style="min-height:350px">
-      <div class="card-header">
-        Received nodes within 24hrs
-      </div>
-      <div class="card-body">
-        <table id="nodesTable" class="table table-bordered table-condensed table-striped">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Id</th>
-              <th>Position</th>
-              <th>Battery</th>
-              <th>SNR</th>
-              <th>Last Heard</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-<br>
 <div class="row">
   <div class="col-4">
     <div class="card" style="min-height:350px">
@@ -95,18 +18,18 @@
   <div class="col-8">
     <div class="card" style="min-height:350px">
       <div class="card-header">
-        <span>Connected to node </span><b><span id="fid"></span></b>
+        <span>Set Node </span><b><span id="fid"></span></b>
       </div>
       <div class="card-body">
         <form action="/setNode" method="post">
           <label for="flongName">Long Name</label>
-          <input type="text" id="flongName" name="flongName"><br><br>
+          <input type="text" id="flongName" name="flongName" value="{{ nodeInfo['user']['longName'] }}"><br><br>
           <label for="flatitude">Latitude</label>
-          <input type="text" id="flatitude" name="flatitude"><br><br>
+          <input type="text" id="flatitude" name="flatitude" value="{{ nodeInfo['position']['latitude'] }}"><br><br>
           <label for="flongitude">Longitude</label>
-          <input type="text" id="flongitude" name="flongitude"><br><br>
+          <input type="text" id="flongitude" name="flongitude" value="{{ nodeInfo['position']['longitude'] }}"><br><br>
           <label for="faltitude">Altitude</label>
-          <input type="text" id="faltitude" name="faltitude"><br><br>
+          <input type="text" id="faltitude" name="faltitude" value="{{ nodeInfo['position']['altitude'] }}"><br><br>
           <input type="submit" value="SET">
         </form>
       </div>
