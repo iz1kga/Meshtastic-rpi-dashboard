@@ -8,15 +8,21 @@ import copy
 import atexit
 import time
 import timeago
-
 from datetime import datetime
-
 import paho.mqtt.client as mqtt
-
 import meshtastic
 from pubsub import pub
-
 import configparser
+from pkg_resources import get_distribution, DistributionNotFound
+import os.path
+
+try:
+    _dist = get_distribution('iMesh-Dashboard')
+except DistributionNotFound:
+    __version__ = 'Unknown version'
+else:
+    __version__ = _dist.version
+
 dataPath = '/usr/local/iMeshDashboard'
 config = configparser.ConfigParser()
 config.read(dataPath+'/conf/app.conf')
@@ -39,6 +45,8 @@ app.config['BASIC_AUTH_USERNAME'] = config['AUTH']['username']
 app.config['BASIC_AUTH_PASSWORD'] = config['AUTH']['password']
 
 basic_auth = BasicAuth(app)
+
+appData = {"version":__version__}
 
 def sendPosition():
     print("Sending Position Beacon")
@@ -170,26 +178,26 @@ def send_img(path):
 def indexPage():
     getNodes()
     return render_template('index.html', Title="iMesh Node Landing Page", 
-                                         nodeInfo=myNodeInfo, info=interface.myInfo)
+                                         nodeInfo=myNodeInfo, info=interface.myInfo, appData=appData)
 
 @app.route('/lh')
 def lhPage():
     getNodes()
     return render_template('lh.html', Title="Last Heard", 
-                                      nodeInfo=myNodeInfo)
+                                      nodeInfo=myNodeInfo, appData=appData)
 
 @app.route('/map')
 def mapPage():
     getNodes()
     return render_template('map.html', nodesList=mapNodes, Title="Nodes Map", 
-                                       nodeInfo=myNodeInfo)
+                                       nodeInfo=myNodeInfo, appData=appData)
 
 @app.route('/private/config')
 @basic_auth.required
 def configPage():
     getNodes()
     return render_template('config.html', Title="Nodes Map", 
-                                          nodeInfo=myNodeInfo)
+                                          nodeInfo=myNodeInfo, appData=appData)
 
 @app.route('/getNodes')
 def printNodes():
@@ -242,6 +250,7 @@ def login():
     return flask.render_template('login.html', form=form)
 
 def main():
+    print("Starting iMeshDashboard v%s" % (__version__,))
     print("MQTT ENABLED: %s" % config['MQTT']['enabled'])
     scheduler = APScheduler()
     if(config['Position']['enabled']=='True'):
