@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block head_script %}
+<script>
+
+  var longNameEditing = false;
+  var latitudeEditing = false;
+  var altitudeEditing = false;
+  var longitudeEditing = false;
+
+  function getNodes() {
+    $.getJSON("/getNodes", function (data) {
+      $("#nodesTable tbody").empty();
+      data.forEach(element => {
+        $("#nodesTable tbody").append("<tr><td> " + element.user +
+          "</td><td>" + element.id + "</a>" +
+          "</td><td>" + element.pos +
+          "</td><td>" + element.batt +
+          "</td><td>" + element.snr +
+          "</td><td>" + element.lh + " - " + element.since +
+          "</td></tr>")
+      });
+    });
+  }
+
+  function getNodeInfo() {
+    $.getJSON("/getNodeInfo", function (data) {
+      $("#nodeInfo").text(data.user.longName + " (" + data.user.id + ") ");
+    });
+  }
+
+  $(document).ready(function () {
+    console.log("ready!");
+    getNodes();
+    getNodeInfo();
+    setInterval(getNodes, 30000);
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <div class="card" style="min-height:350px">
+        <div class="card-header">
+          <span id="nodeInfo"></span>Received nodes within 24hrs
+        </div>
+        <div class="card-body">
+          <table id="nodesTable" class="table table-bordered table-condensed table-striped">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Id</th>
+                <th>Position</th>
+                <th>Battery</th>
+                <th>SNR</th>
+                <th>Last Heard</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
