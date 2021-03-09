@@ -9,9 +9,12 @@
                     <span id="nodeInfo">Node Info</span>
                 </div>
                 <div class="card-body">
-                    Hardware:{{ info['hw_model']}}<br>
-                    Firmware:{{ info['firmware_version']}}<br>
-                    Region:{{ info['region']}}<br>
+                    <b>Hardware:</b> {{ info['hw_model'] | safe }}<br>
+                    <b>Firmware:</b> {{ info['firmware_version'] | safe }}<br>
+                    <b>Region:</b> {{ info['region'] | safe }}<br>
+                    <b>nodeId:</b> {{ nodeInfo['user']['id'] | safe }}<br>
+                    <b>longName:</b> {{ nodeInfo['user']['longName'] | safe }}<br>
+                    <b>shortName:</b> {{ nodeInfo['user']['shortName'] | safe }}<br>
                 </div>
             </div>
         </div>

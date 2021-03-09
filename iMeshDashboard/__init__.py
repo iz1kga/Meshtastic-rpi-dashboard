@@ -211,16 +211,19 @@ def sendMessage():
 @basic_auth.required
 def setNode():
     if request.method == 'POST':
-        print(request.form)
         interface.setOwner(request.form['flongName'])
         prefs = interface.radioConfig.preferences
         alt = int(request.form['faltitude'])
         lat = float(request.form['flatitude'])
         lon = float(request.form['flongitude'])
         ts = int(time.time())
-        prefs.fixed_position = True
-        interface.sendPosition(lat, lon, alt, ts)
-        interface.writeConfig()
+        if not interface.myInfo.has_gps and not (config['Position']['enabled']=='True'):
+            prefs.fixed_position = True
+            interface.sendPosition(lat, lon, alt, ts)
+            interface.writeConfig()
+        else:
+            print("Cannot set node parameters beacuse has gps: %s or has fixed position config in config file: %s" % 
+                   (interface.myInfo.has_gps, (config['Position']['enabled']=='True'),))
     return redirect(url_for('configPage'))
 
 @app.route('/login', methods=['GET', 'POST'])
