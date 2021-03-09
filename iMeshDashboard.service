@@ -1,0 +1,8 @@
+[Unit]
+Description=iMeshDashboard service
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "/usr/local/bin/iMeshDashboard"
+ExecStop=/bin/sh -c "killall -9 iMeshDashboard"
+[Install]
+WantedBy=multi-user.target
