@@ -32,8 +32,6 @@ interface = meshtastic.SerialInterface()
 
 client = mqtt.Client()
 client.username_pw_set(username=config['MQTT']['username'], password=config['MQTT']['password'])
-print(config['MQTT']['enabled'])
-
 
 app = Flask(__name__, template_folder=dataPath+'/templates')
 
@@ -91,26 +89,21 @@ def updateImeshMap(interface, packet):
             print("Pushing received node info")
             client.publish("meshInfo/hopInfo", json.dumps({"receivedNode":packet.get('fromId'), "receiverNode":myNodeInfo['user']['id'],
                            "hopLimit":packet.get('hopLimit'), "rxTime":packet.get('rxTime')}))
-            print("pushed")
     try:
         for node, nodeValue in receivedNodes.items():
             try:
-                print(nodeValue['user']['longName'])
                 mapNodes.append([nodeValue['user']['longName'], nodeValue['position']['latitude'],
                                  nodeValue['position']['longitude'], getMapNodeInfo(nodeValue)[0], getMapNodeInfo(nodeValue)[1], getHourDiff(nodeValue['position']['time'])])
                 if node in oldReceivedNodes:
                     print(node +" - "+ nodeValue['user']['longName'] +" nodo presente")
-                    print(str(nodeValue['position']['time']) +" "+ str(oldReceivedNodes[node]['position']['time']))
                     if nodeValue['position']['time'] > oldReceivedNodes[node]['position']['time']:
-                        print(node +" - "+ nodeValue['user']['longName'] +" aggiornato")
+                        print("aggiornato")
                         client.publish("receivedNodes/"+node, json.dumps(nodeValue))
                 else:
                     print(" nuovo nodo ricevuto: "+node +" - "+ nodeValue['user']['longName'])
                     if(config['MQTT']['enabled']=="True"):
-                        print("--- --- ---")
-                        print(nodeValue)
                         client.publish("receivedNodes/"+node, json.dumps(nodeValue))
-                    print(str(nodeValue['position']['time']))
+                    print(str(nodeValue['position'].get('time')))
             except Exception as e:
                 print(e)
         oldReceivedNodes = copy.deepcopy(receivedNodes)
@@ -137,7 +130,6 @@ def getNodes():
     for node, value in receivedNodes.items():
         if (node == myNodeInfo['user']['id']):
             continue
-        print(value)
         if 'position' in value:
             lhTS = value['position'].get('time')
             if (lhTS is None) or (lhTS < (int(time.time())-86400)):
@@ -172,20 +164,26 @@ def send_css(path):
     return send_from_directory(dataPath+'/css', path)
 
 @app.route('/')
-@basic_auth.required
-def index():
+def indexPage():
     getNodes()
-    return render_template('index.html')
+    return render_template('index.html', Title="iMesh Node Landing Page")
 
-@app.route('/public')
-def public():
+@app.route('/lh')
+def lhPage():
     getNodes()
-    return render_template('public.html')
+    return render_template('lh.html', Title="Last Heard")
 
 @app.route('/map')
-def map():
+def mapPage():
     getNodes()
-    return render_template('map.html', nodesList=mapNodes)
+    return render_template('map.html', nodesList=mapNodes, Title="Nodes Map")
+
+@app.route('/private/config')
+@basic_auth.required
+def configPage():
+    getNodes()
+    return render_template('config.html')
+
 
 @app.route('/getNodes')
 def printNodes():
@@ -234,9 +232,10 @@ def login():
     return flask.render_template('login.html', form=form)
 
 def main():
+    print("MQTT ENABLED: %s" % config['MQTT']['enabled'])
     scheduler = APScheduler()
     if(config['Position']['enabled']=='True'):
-        print("setting postition info")
+        print("Setting postition info")
         scheduler.add_job(func=sendPosition, trigger='interval', id='sendPos', seconds=int(config['Position']['interval']))
         interface.sendPosition(float(config['Position']['lat']), float(config['Position']['lon']), int(config['Position']['alt']), int(time.time()))
         interface.writeConfig()

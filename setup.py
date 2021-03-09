@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name = "iMesh-Dashboard",
-    version = "0.1.3",
+    version = "0.1.5",
     author = "iz1kga",
     author_email = "iz1kga@gmail.com",
     description = "Create Dashboard for serial connected meshtastic device",
@@ -23,7 +23,9 @@ setuptools.setup(
         ],
     packages = ["iMeshDashboard"],
     data_files=[('iMeshDashboard/conf', ['iMeshDashboard/conf/app.conf']),
-                ('iMeshDashboard/templates', ['iMeshDashboard/templates/index.html', 'iMeshDashboard/templates/public.html', 'iMeshDashboard/templates/map.html']),
+                ('iMeshDashboard/templates', ['iMeshDashboard/templates/index.html', 'iMeshDashboard/templates/config.html', 
+                                              'iMeshDashboard/templates/lh.html', 'iMeshDashboard/templates/map.html',
+                                              'iMeshDashboard/templates/base.html']),
                 ('iMeshDashboard/css', ['iMeshDashboard/css/bootstrap.min.css']),
                 ('iMeshDashboard/js', ['iMeshDashboard/js/bootstrap.bundle.min.js', 'iMeshDashboard/js/jquery-3.5.1.min.js']),
     ],
