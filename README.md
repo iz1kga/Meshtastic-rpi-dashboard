@@ -27,14 +27,16 @@ enabled=True #set False i you dont want to publish to MQTT
 ```
 
 ## Run
-Install systemd service running: sudo /usr/local/iMeshDashboard/service/iMeshDashboardServiceInstall.sh
+Install systemd service running: 
+```sudo /usr/local/iMeshDashboard/service/iMeshDashboardServiceInstall.sh```
 the service will start at end of installation
 
 control service:
+```
 systemctl start iMeshDashboard
 systemctl stop iMeshDashboard
 systemctl status iMeshDashboard
-
+```
 
 ### Disclaimer
 
