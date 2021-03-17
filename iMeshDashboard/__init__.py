@@ -242,6 +242,8 @@ def login():
     return flask.render_template('login.html', form=form)
 
 def main():
+    import systemd.daemon
+    systemd.daemon.notify("READY=1")
     print("MQTT ENABLED: %s" % config['MQTT']['enabled'])
     scheduler = APScheduler()
     if(config['Position']['enabled']=='True'):

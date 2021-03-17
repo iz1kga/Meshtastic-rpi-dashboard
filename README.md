@@ -27,7 +27,14 @@ enabled=True #set False i you dont want to publish to MQTT
 ```
 
 ## Run
-from console run `iMeshDashboard`, right now I'm using screen to keep daskbaord running... I've to find a better way to do that, but I'm not so skilled so... be patient
+Install systemd service running: sudo /usr/local/iMeshDashboard/service/iMeshDashboardServiceInstall.sh
+the service will start at end of installation
+
+control service:
+systemctl start iMeshDashboard
+systemctl stop iMeshDashboard
+systemctl status iMeshDashboard
+
 
 ### Disclaimer
 

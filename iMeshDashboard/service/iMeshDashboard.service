@@ -1,7 +1,7 @@
 [Unit]
 Description=iMeshDashboard service
 [Service]
-Type=oneshot
+Type=simple
 ExecStart=/bin/sh -c "/usr/local/bin/iMeshDashboard"
 ExecStop=/bin/sh -c "killall -9 iMeshDashboard"
 [Install]
