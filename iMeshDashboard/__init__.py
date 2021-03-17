@@ -250,9 +250,6 @@ def login():
     return flask.render_template('login.html', form=form)
 
 def main():
-    import systemd.daemon
-    systemd.daemon.notify("READY=1")
-
     print("Starting iMeshDashboard v%s" % (__version__,))
 
     print("MQTT ENABLED: %s" % config['MQTT']['enabled'])

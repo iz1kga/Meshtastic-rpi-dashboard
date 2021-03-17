@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name = "iMesh-Dashboard",
-    version = "0.1.8",
+    version = "0.1.9",
     author = "iz1kga",
     author_email = "iz1kga@gmail.com",
     description = "Create Dashboard for serial connected meshtastic device",
