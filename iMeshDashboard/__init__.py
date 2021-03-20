@@ -11,6 +11,8 @@ import timeago
 from datetime import datetime
 import paho.mqtt.client as mqtt
 import meshtastic
+from meshtastic import remote_hardware, portnums_pb2, remote_hardware_pb2
+
 from pubsub import pub
 import configparser
 from pkg_resources import get_distribution, DistributionNotFound
@@ -33,6 +35,9 @@ oldReceivedNodes = dict()
 receivedNodes = dict()
 myNodeInfo = dict()
 mapNodes = []
+
+positionBeacon = False
+
 
 interface = meshtastic.SerialInterface()
 
@@ -80,6 +85,14 @@ def getMapNodeInfo(node):
                       "<tr><td></td><td>"+getTimeAgo(node['position']['time'])+"<td></tr>"
                       "</table></div>")
         return color, textContent
+
+def onGPIOreceive(interface, packet):
+    print("remote_hardware")
+    print(packet)
+    pb = remote_hardware_pb2.HardwareMessage()
+    pb.ParseFromString(packet["decoded"]["data"]["payload"])
+    print(pb)
+    print(f"Received RemoteHardware typ={pb.typ}, gpio_value={pb.gpio_value}")
 
 def updateImeshMap(interface, packet):
     global oldReceivedNodes
@@ -136,7 +149,7 @@ def getTimeAgo(ts, default=""):
 def getNodes():
     nodesList = []
     for node, value in receivedNodes.items():
-        if (node == myNodeInfo['user']['id']):
+        if (value['user']['id'] == myNodeInfo['user']['id']):
             continue
         if 'position' in value:
             lhTS = value['position'].get('time')
@@ -197,7 +210,7 @@ def mapPage():
 def configPage():
     getNodes()
     return render_template('config.html', Title="Nodes Map", 
-                                          nodeInfo=myNodeInfo, appData=appData)
+                                          nodeInfo=myNodeInfo, appData=appData, nodes=receivedNodes.items())
 
 @app.route('/getNodes')
 def printNodes():
@@ -219,20 +232,59 @@ def sendMessage():
 @basic_auth.required
 def setNode():
     if request.method == 'POST':
-        interface.setOwner(request.form['flongName'])
+        interface.waitForConfig()
+        interface.setOwner(request.form['flongName'],  request.form['fshortName'])
+        interface.waitForConfig()
         prefs = interface.radioConfig.preferences
         alt = int(request.form['faltitude'])
         lat = float(request.form['flatitude'])
         lon = float(request.form['flongitude'])
         ts = int(time.time())
-        if not interface.myInfo.has_gps and not (config['Position']['enabled']=='True'):
+        if not interface.myInfo.has_gps and not (positionBeacon):
             prefs.fixed_position = True
             interface.sendPosition(lat, lon, alt, ts)
+            interface.waitForConfig()
             interface.writeConfig()
         else:
             print("Cannot set node parameters beacuse has gps: %s or has fixed position config in config file: %s" % 
-                   (interface.myInfo.has_gps, (config['Position']['enabled']=='True'),))
+                   (interface.myInfo.has_gps, (positionBeacon),))
     return redirect(url_for('configPage'))
+
+@app.route('/setGpio', methods=['POST'])
+@basic_auth.required
+def setGpio():
+    if request.method == 'POST':
+        tId = request.form['fTarget']
+        tGpio = int(request.form['fGpio'])
+        tValue = int(request.form['fValue'])
+        bitmask = 0
+        bitval = 0
+        bitmask |= 1 << tGpio
+        bitval |= tValue << tGpio
+        r = remote_hardware_pb2.HardwareMessage()
+        r.typ = remote_hardware_pb2.HardwareMessage.Type.WRITE_GPIOS
+        r.gpio_mask = bitmask
+        r.gpio_value = bitval
+        interface.sendData(r, tId, portnums_pb2.REMOTE_HARDWARE_APP, wantAck = True)
+        print(f"Writing GPIO mask 0x{bitmask:x} with value 0x{bitval:x} to {tId}")
+    return redirect(url_for('configPage'))
+    
+
+@app.route('/getGpio')
+@basic_auth.required
+def getGpio():
+    if request.method == 'GET':
+        tId = request.args.get('target')
+        tGpio = int(request.args.get('gpio'))
+        bitmask = 0
+        bitmask |= 1 << tGpio
+        r = remote_hardware_pb2.HardwareMessage()
+        r.typ = remote_hardware_pb2.HardwareMessage.Type.READ_GPIOS
+        r.gpio_mask = bitmask
+        interface.sendData(r, tId, portnums_pb2.REMOTE_HARDWARE_APP, wantAck = True)
+    #return redirect(url_for('configPage'))
+    return (tId+" "+str(tGpio)+" "+hex(bitmask))
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -250,14 +302,19 @@ def login():
     return flask.render_template('login.html', form=form)
 
 def main():
+    global positionBeacon
     print("Starting iMeshDashboard v%s" % (__version__,))
 
     print("MQTT ENABLED: %s" % config['MQTT']['enabled'])
     scheduler = APScheduler()
-    if(config['Position']['enabled']=='True'):
+    if ("Position" in config) and (config['Position']['enabled']=='True'):
+        print("Position Beacon Enabled")
+        positionBeacon = True
+    if(positionBeacon):
         print("Setting postition info")
         scheduler.add_job(func=sendPosition, trigger='interval', id='sendPos', seconds=int(config['Position']['interval']))
         interface.sendPosition(float(config['Position']['lat']), float(config['Position']['lon']), int(config['Position']['alt']), int(time.time()))
+        interface.waitForConfig()
         interface.writeConfig()
     scheduler.start()
 
@@ -267,6 +324,7 @@ def main():
     getNodeInfo()
     updateImeshMap(interface, None)
     pub.subscribe(updateImeshMap, "meshtastic.receive")
+    pub.subscribe(onGPIOreceive, "meshtastic.receive.data.REMOTE_HARDWARE_APP")
     atexit.register(lambda: interface.close())
     serve(app, host=config['NET']['bind'], port=config['NET']['port'])
     #only for debug!

@@ -6,8 +6,14 @@
 
 ## Configuration
 
-Edit /usr/local/iMeshDashboard/conf/app.conf
+#### First installation
+```
+cd /usr/local/iMeshDashboard/conf/
+sudo mv app.conf.example app.conf
+sudo nano app.conf
+```
 
+#### Configuration example
 ```
 [AUTH] #authentication for dashboard
 username=user
@@ -17,13 +23,20 @@ password=testPassword
 bind=0.0.0.0
 port=5000
 
+[Position] # send position beacon for non gps devices
+lat=45.5
+lon=7.5
+alt=250
+interval=375
+enabled=False
+
 [MQTT] #mqtt server for publishing received nodes (i use it to render imeshmap.iz1kga.it)
 host=mqtt.test.org
 port=1883
 username=MQTTuser
 password=MQTTpassword
 keepalive=60
-enabled=True #set False i you dont want to publish to MQTT
+enabled=False
 ```
 
 ## Run

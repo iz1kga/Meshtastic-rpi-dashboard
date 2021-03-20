@@ -1,22 +1,54 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="row">
-  <div class="col-4">
-    <div class="card" style="min-height:350px">
-      <div class="card-header">
-        Send Message
+  <div class="col-6">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            Send Message
+          </div>
+          <div class="card-body">
+            <form action="/sendMessage" method="post">
+              <input type="text" id="fmsg" name="fmsg"  style="min-width:50px">
+              <input type="submit" value="Send">
+            </form>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <form action="/sendMessage" method="post">
-          <label for="fmsg">Messaggio</label>
-          <input type="text" id="fmsg" name="fmsg"><br><br>
-          <input type="submit" value="Send">
-        </form>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <span>Write GPIO </span><b><span id="fid"></span></b>
+          </div>
+          <div class="card-body">
+            <form action="/setGpio" method="post">
+              <select name="fTarget" id="fTarget">
+                {% for node in nodes %}
+                <option value="{{ node[1].user.id }}"">{{ node[1].user.longName }}</option>
+                {% endfor %}
+              </select>
+              <select name="fGpio" id="fGpio">
+                <option value="2">GPIO 2</option>
+                <option value="15">GPIO 15</option>
+                <option value="35">GPIO 35</option>
+              </select>
+              <select name="fValue" id="fValue">
+                <option value="1">ON</option>
+                <option value="0">OFF</option>
+              </select>
+              <input type="submit" value="WRITE">
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="col-8">
-    <div class="card" style="min-height:350px">
+  <div class="col-6">
+    <div class="card">
       <div class="card-header">
         <span>Set Node </span><b><span id="fid"></span></b>
       </div>
@@ -24,6 +56,8 @@
         <form action="/setNode" method="post">
           <label for="flongName">Long Name</label>
           <input type="text" id="flongName" name="flongName" value="{{ nodeInfo['user']['longName'] }}"><br><br>
+          <label for="fshortName">Short Name</label>
+          <input type="text" id="fshortName" name="fshortName" value="{{ nodeInfo['user']['shortName'] }}"><br><br>
           <label for="flatitude">Latitude</label>
           <input type="text" id="flatitude" name="flatitude" value="{{ nodeInfo['position']['latitude'] }}"><br><br>
           <label for="flongitude">Longitude</label>
@@ -35,6 +69,12 @@
         Position and Altitude can be set if device doesn't have GPS and no fixed position is set in config file
       </div>
     </div>
+  </div>
+</div>
+<br />
+<div class="row">
+  <div class="col-12">
+
   </div>
 </div>
 {% endblock %}
