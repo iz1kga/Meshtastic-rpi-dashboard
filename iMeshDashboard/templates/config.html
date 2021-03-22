@@ -10,8 +10,17 @@
           </div>
           <div class="card-body">
             <form action="/sendMessage" method="post">
-              <input type="text" id="fmsg" name="fmsg"  style="min-width:50px">
-              <input type="submit" value="Send">
+              <label for="fTargetSelect">ID:</label>
+              <select name="fTargetSelect" id="fTargetSelect">
+                <option value="^All">ALL</option>
+                {% for node in nodes %}
+                <option value="{{ node[1].user.id }}"">{{ node[1].user.longName }}</option>
+                {% endfor %}
+              </select>
+              <input type="text" id="fTarget" name="fTarget" style="min-width:50px" value="^All"/><br />
+              <label for="fmsg">Message:</label>
+                <input type="text" id="fmsg" name="fmsg" style="min-width:50px" />
+                <input type="submit" value="Send" />
             </form>
           </div>
         </div>
@@ -31,7 +40,7 @@
                 <option value="{{ node[1].user.id }}"">{{ node[1].user.longName }}</option>
                 {% endfor %}
               </select>
-              <select name="fGpio" id="fGpio">
+              <select name=" fGpio" id="fGpio">
                 <option value="2">GPIO 2</option>
                 <option value="15">GPIO 15</option>
                 <option value="35">GPIO 35</option>
@@ -55,15 +64,15 @@
       <div class="card-body">
         <form action="/setNode" method="post">
           <label for="flongName">Long Name</label>
-          <input type="text" id="flongName" name="flongName" value="{{ nodeInfo['user']['longName'] }}"><br><br>
+          <input type="text" id="flongName" name="flongName" value="{{ nodeInfo['user']['longName'] }}"><br>
           <label for="fshortName">Short Name</label>
-          <input type="text" id="fshortName" name="fshortName" value="{{ nodeInfo['user']['shortName'] }}"><br><br>
+          <input type="text" id="fshortName" name="fshortName" value="{{ nodeInfo['user']['shortName'] }}"><br>
           <label for="flatitude">Latitude</label>
-          <input type="text" id="flatitude" name="flatitude" value="{{ nodeInfo['position']['latitude'] }}"><br><br>
+          <input type="text" id="flatitude" name="flatitude" value="{{ nodeInfo['position']['latitude'] }}"><br>
           <label for="flongitude">Longitude</label>
-          <input type="text" id="flongitude" name="flongitude" value="{{ nodeInfo['position']['longitude'] }}"><br><br>
+          <input type="text" id="flongitude" name="flongitude" value="{{ nodeInfo['position']['longitude'] }}"><br>
           <label for="faltitude">Altitude</label>
-          <input type="text" id="faltitude" name="faltitude" value="{{ nodeInfo['position']['altitude'] }}"><br><br>
+          <input type="text" id="faltitude" name="faltitude" value="{{ nodeInfo['position']['altitude'] }}"><br>
           <input type="submit" value="SET">
         </form>
         Position and Altitude can be set if device doesn't have GPS and no fixed position is set in config file
@@ -77,4 +86,13 @@
 
   </div>
 </div>
+{% endblock %}
+
+{% block footer_script %}
+<script>
+  $("#fTargetSelect").change(function () {
+    $("#fTarget").val($("#fTargetSelect").val());
+  });
+</script>
+
 {% endblock %}
