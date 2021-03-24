@@ -63,6 +63,19 @@
       </div>
       <div class="card-body">
         <form action="/setNode" method="post">
+          <label for="fRegion">Region</label>
+          <select name="fRegion" id="fValue">
+            <option value="0" {% if prefs.region == 0 %} selected {% endif %}>Unset</option>
+            <option value="1" {% if prefs.region == 1 %} selected {% endif %}>US</option>
+            <option value="2" {% if prefs.region == 2 %} selected {% endif %}>EU433</option>
+            <option value="3" {% if prefs.region == 3 %} selected {% endif %}>EU865</option>
+            <option value="4" {% if prefs.region == 4 %} selected {% endif %}>CN</option>
+            <option value="5" {% if prefs.region == 5 %} selected {% endif %}>JP</option>
+            <option value="6" {% if prefs.region == 6 %} selected {% endif %}>ANZ</option>
+            <option value="7" {% if prefs.region == 7 %} selected {% endif %}>KR</option>
+            <option value="8" {% if prefs.region == 8 %} selected {% endif %}>TW</option>
+            <option value="9" {% if prefs.region == 9 %} selected {% endif %}>RU</option>
+          </select><br/>
           <label for="flongName">Long Name</label>
           <input type="text" id="flongName" name="flongName" value="{{ nodeInfo['user']['longName'] }}"><br>
           <label for="fshortName">Short Name</label>

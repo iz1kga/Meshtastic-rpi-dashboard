@@ -209,8 +209,10 @@ def mapPage():
 @basic_auth.required
 def configPage():
     getNodes()
+    radioPrefs = interface.localNode.radioConfig.preferences
     return render_template('config.html', Title="Nodes Map", 
-                                          nodeInfo=myNodeInfo, appData=appData, nodes=receivedNodes.items())
+                                          nodeInfo=myNodeInfo, appData=appData,
+                                          nodes=receivedNodes.items(), prefs=radioPrefs)
 
 @app.route('/getNodes')
 def printNodes():
@@ -232,22 +234,22 @@ def sendMessage():
 @basic_auth.required
 def setNode():
     if request.method == 'POST':
+        radioPrefs = interface.localNode.radioConfig.preferences
         interface.waitForConfig()
-        interface.setOwner(request.form['flongName'],  request.form['fshortName'])
-        interface.waitForConfig()
-        prefs = interface.radioConfig.preferences
+        interface.localNode.setOwner(request.form['flongName'],  request.form['fshortName'])
+        interface.localNode.waitForConfig()
+        setattr(radioPrefs, "region", int(request.form['fRegion']))
         alt = int(request.form['faltitude'])
         lat = float(request.form['flatitude'])
         lon = float(request.form['flongitude'])
         ts = int(time.time())
         if not interface.myInfo.has_gps and not (positionBeacon):
-            prefs.fixed_position = True
+            setattr(radioPrefs, "fixed_position", True)
             interface.sendPosition(lat, lon, alt, ts)
-            interface.waitForConfig()
-            interface.writeConfig()
         else:
             print("Cannot set node parameters beacuse has gps: %s or has fixed position config in config file: %s" % 
                    (interface.myInfo.has_gps, (positionBeacon),))
+        interface.localNode.writeConfig()
     return redirect(url_for('configPage'))
 
 @app.route('/setGpio', methods=['POST'])

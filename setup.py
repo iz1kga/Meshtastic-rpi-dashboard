@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name = "iMesh-Dashboard",
-    version = "0.1.13",
+    version = "0.2.0",
     author = "iz1kga",
     author_email = "iz1kga@gmail.com",
     description = "Create Dashboard for serial connected meshtastic device",
@@ -32,7 +32,7 @@ setuptools.setup(
                 ('iMeshDashboard/img', ['iMeshDashboard/img/iMesh.png', 'iMeshDashboard/img/iMeshLight.png']),
                 ('iMeshDashboard/service', ['iMeshDashboard/service/iMeshDashboard.service', 'iMeshDashboard/service/iMeshDashboardServiceInstall.sh']),
     ],
-    install_requires=["configparser>=5.0.1", "Flask==1.1.2", "Flask-BasicAuth==0.2.0", "meshtastic==1.1.50",
+    install_requires=["configparser>=5.0.1", "Flask==1.1.2", "Flask-BasicAuth==0.2.0", "meshtastic>=1.2.0",
                       "paho-mqtt==1.5.1", "timeago>=1.0.15", "waitress==1.4.4", "Flask-APScheduler==1.11.0"],
     python_requires = '>=3.6',
     entry_points={

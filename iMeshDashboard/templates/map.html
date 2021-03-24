@@ -97,8 +97,8 @@
 {% endblock %}
 {% block footer_script %}
 <script>
-  var lat = 45.1;
-  var lon = 7.50;
+  var lat = {{ nodeInfo['position']['latitude'] }};
+  var lon = {{ nodeInfo['position']['longitude'] }};
   var z = 10;
   var myProjectionName = "EPSG:3857";
   var nodes = {{ nodesList | safe }};
@@ -192,10 +192,10 @@
     projection: myProjectionName,
     tracking: true
   });
-  geolocation.on('change', function (evt) {
+  /*geolocation.on('change', function (evt) {
     //console.log(geolocation.getPosition());
     map.getView().setCenter(geolocation.getPosition());
-  });
+  });*/
 
   /**
    * Add a click handler to the map to render the popup.
