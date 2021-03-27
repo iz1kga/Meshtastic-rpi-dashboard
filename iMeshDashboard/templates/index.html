@@ -9,9 +9,9 @@
                     <span id="nodeInfo">Node Info</span>
                 </div>
                 <div class="card-body">
-                    <b>Hardware:</b> {{ info['hw_model'] | safe }}<br>
+                    <b>Hardware:</b> {{ nodeInfo['user']['hwModel'] | safe }}<br>
                     <b>Firmware:</b> {{ info['firmware_version'] | safe }}<br>
-                    <b>Region:</b> {{ info['region'] | safe }}<br>
+                    <b>Region:</b> {{ prefs['region'] | safe }}<br>
                     <b>nodeId:</b> {{ nodeInfo['user']['id'] | safe }}<br>
                     <b>longName:</b> {{ nodeInfo['user']['longName'] | safe }}<br>
                     <b>shortName:</b> {{ nodeInfo['user']['shortName'] | safe }}<br>

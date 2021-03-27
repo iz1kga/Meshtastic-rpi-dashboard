@@ -190,8 +190,10 @@ def send_img(path):
 @app.route('/')
 def indexPage():
     getNodes()
+    radioPrefs = interface.localNode.radioConfig.preferences
     return render_template('index.html', Title="iMesh Node Landing Page", 
-                                         nodeInfo=myNodeInfo, info=interface.myInfo, appData=appData)
+                                         nodeInfo=myNodeInfo, info=interface.myInfo,
+                                         appData=appData, prefs=radioPrefs)
 
 @app.route('/lh')
 def lhPage():
