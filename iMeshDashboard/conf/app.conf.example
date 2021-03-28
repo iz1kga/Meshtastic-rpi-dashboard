@@ -13,6 +13,10 @@ alt=250
 interval=375
 enabled=False
 
+[Reboot]
+interval=3600
+enabled=False
+
 [MQTT] #mqtt server for publishing received nodes (i use it to render imeshmap.iz1kga.it)
 host=mqtt.test.org
 port=1883

@@ -54,6 +54,10 @@ basic_auth = BasicAuth(app)
 
 appData = {"version":__version__}
 
+def reboot():
+    print("Rebooting")
+    interface.localNode.reboot()
+
 def sendPosition():
     print("Sending Position Beacon")
     interface.sendPosition(float(config['Position']['lat']), float(config['Position']['lon']), int(config['Position']['alt']), int(time.time()))
@@ -325,8 +329,12 @@ def main():
         print("Setting postition info")
         scheduler.add_job(func=sendPosition, trigger='interval', id='sendPos', seconds=int(config['Position']['interval']))
         interface.sendPosition(float(config['Position']['lat']), float(config['Position']['lon']), int(config['Position']['alt']), int(time.time()))
-        interface.waitForConfig()
-        interface.writeConfig()
+        interface.localNode.waitForConfig()
+        interface.localNode.writeConfig()
+
+    if ("Reboot" in config) and (config['Reboot']['enabled']=='True'):
+        print("Reboot Enabled")
+        scheduler.add_job(func=reboot, trigger='interval', id='rebootNode', seconds=int(config['Reboot']['interval']))
     scheduler.start()
 
     if(config['MQTT']['enabled']=="True"):
