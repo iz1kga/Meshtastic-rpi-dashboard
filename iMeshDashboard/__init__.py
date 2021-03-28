@@ -59,9 +59,14 @@ def sendPosition():
     interface.sendPosition(float(config['Position']['lat']), float(config['Position']['lon']), int(config['Position']['alt']), int(time.time()))
 
 def getNodeInfo():
-    global myNodeInfo
-    myNodeInfo = interface.getMyNodeInfo()
-    return json.dumps(myNodeInfo)
+    try:
+        global myNodeInfo
+        myNodeInfo = interface.localNode.iface.getMyNodeInfo()
+        return json.dumps(myNodeInfo)
+    except Exception as e:
+        traceback.print_exc()
+        return None
+
 
 def getMapNodeInfo(node):
         tDelta = int(time.time()) - int(node['position']['time'])
