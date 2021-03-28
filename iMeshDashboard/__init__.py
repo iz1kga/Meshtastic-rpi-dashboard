@@ -325,8 +325,11 @@ def main():
     if(config['MQTT']['enabled']=="True"):
         client.connect(config['MQTT']['host'], int(config['MQTT']['port']), int(config['MQTT']['keepalive']))
         client.loop_start()
-    getNodeInfo()
-    updateImeshMap(interface, None)
+    try:
+        getNodeInfo()
+        updateImeshMap(interface, None)
+    except Exception as e:
+        print(e)
     pub.subscribe(updateImeshMap, "meshtastic.receive")
     pub.subscribe(onGPIOreceive, "meshtastic.receive.data.REMOTE_HARDWARE_APP")
     atexit.register(lambda: interface.close())
