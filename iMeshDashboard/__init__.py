@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import traceback
 from flask import Flask, render_template, request, send_from_directory, url_for, redirect
 from flask_basicauth import BasicAuth
 from flask_apscheduler import APScheduler
@@ -112,6 +113,7 @@ def updateImeshMap(interface, packet):
                            "hopLimit":packet.get('hopLimit'), "rxTime":packet.get('rxTime')}))
     try:
         for node, nodeValue in receivedNodes.items():
+            
             try:
                 mapNodes.append([nodeValue['user']['longName'], nodeValue['position']['latitude'],
                                  nodeValue['position']['longitude'], getMapNodeInfo(nodeValue)[0], getMapNodeInfo(nodeValue)[1], getHourDiff(nodeValue['position']['time'])])
@@ -121,15 +123,15 @@ def updateImeshMap(interface, packet):
                         print("aggiornato")
                         client.publish("receivedNodes/"+node, json.dumps(nodeValue))
                 else:
-                    print(" nuovo nodo ricevuto: "+node +" - "+ nodeValue['user']['longName'])
+                    print("New node received: "+node +" - "+ nodeValue['user']['longName']+" @ "+str(nodeValue['position'].get('time')))
                     if(config['MQTT']['enabled']=="True"):
                         client.publish("receivedNodes/"+node, json.dumps(nodeValue))
-                    print(str(nodeValue['position'].get('time')))
             except Exception as e:
-                print(e)
+                traceback.print_exc()
+                print(nodeValue)
         oldReceivedNodes = copy.deepcopy(receivedNodes)
     except Exception as e:
-        print(e)
+        traceback.print_exc()
 
 def getHourDiff(TS):
     return int((int(time.time())-int(TS))/3600)
@@ -329,7 +331,7 @@ def main():
         getNodeInfo()
         updateImeshMap(interface, None)
     except Exception as e:
-        print(e)
+        traceback.print_exc()
     pub.subscribe(updateImeshMap, "meshtastic.receive")
     pub.subscribe(onGPIOreceive, "meshtastic.receive.data.REMOTE_HARDWARE_APP")
     atexit.register(lambda: interface.close())
