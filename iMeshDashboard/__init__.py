@@ -185,6 +185,7 @@ def getNodes():
         snr = snr + (" dB" if (snr != "") else "")
         nodesList.append({"user":value['user']['longName'], "id":node, "pos":pos, "lh":lh, "batt":batt, "snr":snr, "since":since})
         nodesList = sorted(nodesList, key=lambda k: k['lh'], reverse=True)
+        print("DUMP")
     return(json.dumps(nodesList))
 
 
