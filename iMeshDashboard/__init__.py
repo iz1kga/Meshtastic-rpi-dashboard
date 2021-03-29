@@ -157,6 +157,9 @@ def getTimeAgo(ts, default=""):
 
 def getNodes():
     nodesList = []
+    print("getNodes() --------->")
+    print(receivedNodes)
+    print("------------------------------")
     for node, value in receivedNodes.items():
         if (value['user']['id'] == myNodeInfo['user']['id']):
             continue
