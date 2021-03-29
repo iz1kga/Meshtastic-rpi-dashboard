@@ -73,7 +73,7 @@ def getNodeInfo():
 
 
 def getMapNodeInfo(node):
-        tDelta = int(time.time()) - int(node['position']['time'])
+        tDelta = int(time.time()) - int(node.get("lastHeard"))
         color = "indigo"
         if(tDelta <= 172800):
             color = "purple"
@@ -91,8 +91,8 @@ def getMapNodeInfo(node):
                       "<tr><td>Id:</td><td>"+node['user']['id']+"<td></tr>"
                       "<tr><td>Position:</td><td>"+getFloat(node['position']['latitude'])+"°, "+getFloat(node['position']['longitude'])+"°,"
                       " "+str(node['position'].get('altitude', '--'))+"m<td></tr>"
-                      "<tr><td>Last Heard:</td><td>"+getLH(node['position']['time'])+"<td></tr>"
-                      "<tr><td></td><td>"+getTimeAgo(node['position']['time'])+"<td></tr>"
+                      "<tr><td>Last Heard:</td><td>"+getLH(node.get("lastHeard"))+"<td></tr>"
+                      "<tr><td></td><td>"+getTimeAgo(node.get("lastHeard"))+"<td></tr>"
                       "</table></div>")
         return color, textContent
 
@@ -110,7 +110,6 @@ def updateImeshMap(interface, packet):
     global mapNodes
     mapNodes = []
     receivedNodes = copy.deepcopy(interface.nodes)
-
     if packet is not None:
         print("Packet received:")
         print(packet)
@@ -121,14 +120,13 @@ def updateImeshMap(interface, packet):
             client.publish("meshInfo/hopInfo", json.dumps({"receivedNode":packet.get('fromId'), "receiverNode":myNodeInfo['user']['id'],
                            "hopLimit":packet.get('hopLimit'), "rxTime":packet.get('rxTime')}))
     try:
-        for node, nodeValue in receivedNodes.items():
-            
+        for node, nodeValue in receivedNodes.items():       
             try:
                 mapNodes.append([nodeValue['user']['longName'], nodeValue['position']['latitude'],
-                                 nodeValue['position']['longitude'], getMapNodeInfo(nodeValue)[0], getMapNodeInfo(nodeValue)[1], getHourDiff(nodeValue['position']['time'])])
+                                 nodeValue['position']['longitude'], getMapNodeInfo(nodeValue)[0], getMapNodeInfo(nodeValue)[1], getHourDiff(nodeValue.get("lastHeard"))])
                 if node in oldReceivedNodes:
                     print(node +" - "+ nodeValue['user']['longName'] +" nodo presente")
-                    if nodeValue['position']['time'] > oldReceivedNodes[node]['position']['time']:
+                    if nodeValue.get("lastHeard") > oldReceivedNodes[node].get("lastHeard"):
                         print("aggiornato")
                         client.publish("receivedNodes/"+node, json.dumps(nodeValue))
                 else:
@@ -163,7 +161,7 @@ def getNodes():
         if (value['user']['id'] == myNodeInfo['user']['id']):
             continue
         if 'position' in value:
-            lhTS = value['position'].get('time')
+            lhTS = value.get('lastHeard')
             if (lhTS is None) or (lhTS < (int(time.time())-86400)):
                 continue
             if 'latitude' in value['position'] and 'longitude' in value['position']:
