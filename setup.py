@@ -32,7 +32,7 @@ setuptools.setup(
                 ('iMeshDashboard/img', ['iMeshDashboard/img/iMesh.png', 'iMeshDashboard/img/iMeshLight.png']),
                 ('iMeshDashboard/service', ['iMeshDashboard/service/iMeshDashboard.service', 'iMeshDashboard/service/iMeshDashboardServiceInstall.sh']),
     ],
-    install_requires=["configparser>=5.0.1", "Flask==1.1.2", "Flask-BasicAuth==0.2.0", "meshtastic==1.1.50",
+    install_requires=["configparser>=5.0.1", "Flask==1.1.2", "Flask-BasicAuth==0.2.0", "meshtastic",
                       "paho-mqtt==1.5.1", "timeago>=1.0.15", "waitress==1.4.4", "Flask-APScheduler==1.11.0"],
     python_requires = '>=3.6',
     entry_points={

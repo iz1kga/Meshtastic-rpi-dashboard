@@ -11,6 +11,7 @@ import timeago
 from datetime import datetime
 import paho.mqtt.client as mqtt
 import meshtastic
+import meshtastic.serial_interface
 from meshtastic import remote_hardware, portnums_pb2, remote_hardware_pb2
 
 from pubsub import pub
@@ -39,7 +40,7 @@ mapNodes = []
 positionBeacon = False
 
 
-interface = meshtastic.SerialInterface()
+interface = meshtastic.serial_interface.SerialInterface()
 
 client = mqtt.Client()
 client.username_pw_set(username=config['MQTT']['username'], password=config['MQTT']['password'])
