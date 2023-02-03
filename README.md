@@ -1,4 +1,4 @@
-# Meshtastic-rpi-dashboard
+# Meshtastic-rpi-dashboard (UNMANTAINED WORKED ONLY WITH SPECIFIC V1.X Version)
 ### Create Dashboard for serial connected meshtastic device
 
 ## Setup:
